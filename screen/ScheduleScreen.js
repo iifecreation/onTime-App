@@ -1,4 +1,4 @@
-import { StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Modal, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View, Dimensions } from 'react-native'
 import React, { useState } from 'react'
 import Arrow from "../component/Arrow"
 import Mark from "../component/Mark"
@@ -7,25 +7,103 @@ import SmallArrow from "../component/SmallArrow"
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 import { useNavigation } from '@react-navigation/native';
-import {CheckBox} from 'rn-inkpad';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+// import {CheckBox} from 'rn-inkpad';
 
 const ScheduleScreen = () => {
     const navigation = useNavigation();
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const [isDatePickerFinishVisible, setDatePickerFinishVisibility] = useState(false);
     const [selectedDate, setSelectedDate] = useState(null);
+    const [finishDate, setFinishDate] = useState(null);
+    const[title, setTitle] = useState('')
+    const[note, setNote] = useState('')
+    const[place, setPlace] = useState('')
+    const[fullday, setFullDay] = useState(false)
+    const [isRepeatModalVisible, setRepeatModalVisible] = useState(false);
+    const [isReminderModalVisible, setReminderModalVisible] = useState(false);
+    const [selectedRepeatOption, setSelectedRepeatOption] = useState('One time');
+    const [selectedReminderOption, setSelectedReminderOption] = useState('Before 5 minutes');
+
+
+    const currentDate = new Date();
+
+    const toggleSwitch = () => setFullDay(previousState => !previousState);
 
     const showDatePicker = () => {
         setDatePickerVisibility(true);
     };
+
+    const showDateFinishPicker = () => {
+        setDatePickerFinishVisibility(true);
+    };
     
     const hideDatePicker = () => {
-    setDatePickerVisibility(false);
+        setDatePickerVisibility(false);
+    };
+
+    const hideDateFinishPicker = () => {
+        setDatePickerFinishVisibility(false);
     };
     
     const handleConfirm = (date) => {
-    hideDatePicker();
-    setSelectedDate(date);
+        hideDatePicker();
+        setSelectedDate(date);
     };
+
+    const handleConfirmFinish = (date) => {
+        hideDateFinishPicker();
+        setFinishDate(date)
+    };
+
+    const toggleRepeatModal = () => {
+        setRepeatModalVisible(!isRepeatModalVisible);
+    };
+
+    const toggleReminderModal = () => {
+        setReminderModalVisible(!isReminderModalVisible);
+    };
+
+    const handleRepeatOptionSelect = (option) => {
+        setSelectedRepeatOption(option);
+        setRepeatModalVisible(false);
+    };
+
+    const handleReminderOptionSelect = (option) => {
+        setSelectedReminderOption(option);
+        setReminderModalVisible(false);
+    };
+
+    // Function to save the schedule data
+    const saveSchedule = async () => {
+        try {
+            let schedules = [];
+            const existingSchedule = await AsyncStorage.getItem('scheduleData');
+            if (existingSchedule) {
+                schedules = JSON.parse(existingSchedule);
+            }
+    
+            const newSchedule = {
+                id: Date.now(),
+                title,
+                note,
+                place,
+                fullday,
+                selectedDate: selectedDate ? selectedDate.toString() : null,
+                finishDate: finishDate ? finishDate.toString() : null,
+                selectedRepeatOption,
+                selectedReminderOption
+            };
+    
+            schedules.push(newSchedule);
+            await AsyncStorage.setItem('scheduleData', JSON.stringify(schedules));
+            console.log('Schedule data saved successfully!');
+            navigation.navigate("Home")
+        } catch (error) {
+            console.error('Error saving schedule data:', error);
+        }
+    };
+    
 
   return (
     <View style={styles.schedule}>
@@ -35,22 +113,24 @@ const ScheduleScreen = () => {
                     <Arrow />
                 </TouchableOpacity>
                 <View style={styles.headerNav}>
-                    <CheckBox iconColor='#fff' textStyle={{display: "none"}} />
-                    <View style={{width: 20, height: 20}}>
+                    {/* <CheckBox iconColor='#fff' textStyle={{display: "none"}} /> */}
+                    {/* <View style={{width: 20, height: 20}}>
                         <Dustin />
-                    </View>
-                    <Mark />
+                    </View> */}
+                    <TouchableOpacity onPress={() => saveSchedule()}>
+                        <Mark />
+                    </TouchableOpacity>
                 </View>
 
             </View>
 
             <View style={styles.createScheule}>
                 <Text style={styles.createScheuleText}>Schedule</Text>
-                <TextInput style={styles.createScheuleInput} placeholder='Enter Title' />
+                <TextInput style={styles.createScheuleInput} placeholder='Enter Title' onChangeText={(text) => setTitle(text)} />
 
                 <View style={styles.createScheuleFull}>
                     <Text style={styles.createScheuleFullText}>Fullday</Text>
-                    <Switch />
+                    <Switch value={fullday} onValueChange={toggleSwitch} />
                 </View>
 
                <View style={styles.createScheulePla}>
@@ -59,56 +139,120 @@ const ScheduleScreen = () => {
                         <TouchableOpacity style={styles.createScheuleSecon} onPress={showDatePicker}>
                             <Text style={styles.createScheuleSeconText}>{selectedDate
                                 ? `${moment(selectedDate).format('MMMM, Do YYYY hh:mm A')}`
-                                : 'Mon, 20 Sep 2021 10:00 AM '}
+                                : `${moment(currentDate).format('MMMM, Do YYYY hh:mm A')}`}
                             </Text>
             
                             <SmallArrow />
                         </TouchableOpacity>
                     </View>
 
-                    <DateTimePickerModal
-                        isVisible={isDatePickerVisible}
-                        mode="datetime"
-                        onConfirm={handleConfirm}
-                        onCancel={hideDatePicker}
-                    />
+                    
 
                     <View style={styles.createScheuleFull}>
                         <Text style={styles.createScheuleFullText}>Finish</Text>
-                        <TouchableOpacity style={styles.createScheuleSecon} onPress={showDatePicker}>
-                            <Text style={styles.createScheuleSeconText}>{selectedDate
-                                ? `${moment(selectedDate).format('MMMM, Do YYYY hh:mm A')}`
-                                : 'Mon, 20 Sep 2021 10:00 AM '}</Text>
+                        <TouchableOpacity style={styles.createScheuleSecon} onPress={showDateFinishPicker}>
+                            <Text style={styles.createScheuleSeconText}>{finishDate
+                                ? `${moment(finishDate).format('MMMM, Do YYYY hh:mm A')}`
+                                : `${moment(new Date(currentDate).setDate(currentDate.getDate() + 2)).format('MMMM, Do YYYY hh:mm A')}`}</Text>
                             <SmallArrow />
                         </TouchableOpacity>
                     </View>
+
+                    
 
                     <View style={styles.createScheuleFull}>
                         <Text style={styles.createScheuleFullText}>Repeat</Text>
-                        <TouchableOpacity style={styles.createScheuleSecon}>
-                            <Text style={styles.createScheuleSeconText}>One time</Text>
+                        <TouchableOpacity style={styles.createScheuleSecon} onPress={() => toggleRepeatModal()}>
+                            <Text style={styles.createScheuleSeconText}>{selectedRepeatOption}</Text>
                             <SmallArrow />
                         </TouchableOpacity>
                     </View>
-
+                                
+                    {/* reminder section start */}
                     <View style={styles.createScheuleFull}>
                         <Text style={styles.createScheuleFullText}>Reminder</Text>
-                        <TouchableOpacity style={styles.createScheuleSecon}>
-                            <Text style={styles.createScheuleSeconText}>Before 5 minutes</Text>
+                        <TouchableOpacity style={styles.createScheuleSecon} onPress={() => toggleReminderModal()}>
+                            <Text style={styles.createScheuleSeconText}>{selectedReminderOption}</Text>
                             <SmallArrow />
                         </TouchableOpacity>
                     </View>
+                    {/* reminder section end */}
 
                     <View style={styles.scheduleInput}>
-                        <TextInput placeholder='Place...' style={[styles.createScheuleInput, {marginBottom: 0}]} />
+                        <TextInput placeholder='Place...' style={[styles.createScheuleInput, {marginBottom: 0}]} onChangeText={(text) => setPlace(text)} />
                     </View>
 
                     <View style={styles.scheduleInput}>
-                        <TextInput placeholder='Note...' style={styles.createScheuleInput} multiline/>
+                        <TextInput placeholder='Note...' style={styles.createScheuleInput} multiline onChangeText={(text) => setNote(text)}/>
                     </View>
                </View>
 
             </View>
+
+{/* ==================== modal section ==================== */}
+
+            {/* date picker for start date start */}
+            <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                mode="datetime"
+                onConfirm={handleConfirm}
+                onCancel={hideDatePicker}
+            />
+            {/* date picker for start date  end */}
+
+            {/* date picker for finish start */}
+            <DateTimePickerModal
+                isVisible={isDatePickerFinishVisible}
+                mode="datetime"
+                onConfirm={handleConfirmFinish}
+                onCancel={hideDateFinishPicker}
+            />
+            {/* date picker for finish end */}
+
+{/* ==================== modal section ==================== */}
+            {/* modal for repeat start */}
+            <Modal visible={isRepeatModalVisible} transparent={true} animationType="slide" statusBarTranslucent={true}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Select Repeat Option</Text>
+                        <TouchableOpacity onPress={() => handleRepeatOptionSelect('One time')}>
+                            <Text style={styles.modalOption}>One time</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleRepeatOptionSelect('Two times')}>
+                            <Text style={styles.modalOption}>Two times</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleRepeatOptionSelect('Five times')}>
+                            <Text style={styles.modalOption}>Five times</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+            {/* modal for repeat end */}
+
+            {/* modal for reminder start */}
+            <Modal visible={isReminderModalVisible} transparent={true} animationType="slide" statusBarTranslucent={true}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Select Reminder Option</Text>
+                        <TouchableOpacity onPress={() => handleReminderOptionSelect('Before 5 minutes')}>
+                            <Text style={styles.modalOption}>Before 5 minutes</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleReminderOptionSelect('Before 10 minutes')}>
+                            <Text style={styles.modalOption}>Before 10 minutes</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleReminderOptionSelect('Before 15 minutes')}>
+                            <Text style={styles.modalOption}>Before 15 minutes</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleReminderOptionSelect('Before 30 minutes')}>
+                            <Text style={styles.modalOption}>Before 30 minutes</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleReminderOptionSelect('Before a day')}>
+                            <Text style={styles.modalOption}>Before a day</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+            {/* modal for reminder end */}
             
         </View>
     </View>
@@ -116,6 +260,10 @@ const ScheduleScreen = () => {
 }
 
 export default ScheduleScreen
+
+const { width, height } = Dimensions.get('window');
+const modalWidth = width - 40; // Adjust as needed
+const modalHeight = 200;
 
 const styles = StyleSheet.create({
     schedule: {
@@ -177,7 +325,28 @@ const styles = StyleSheet.create({
     createScheulePla: {
         gap: 17
     },
-    scheduleInput: {
-
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Adjust transparency as needed
+    },
+    modalContent: {
+        backgroundColor: '#ffffff',
+        borderRadius: 10,
+        padding: 20,
+        width: modalWidth,
+        maxHeight: modalHeight,
+        overflow: 'hidden', // Ensure content does not overflow modal dimensions
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    modalOption: {
+        fontSize: 16,
+        marginBottom: 7,
+        color: '#333333',
     },
 })

@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
 import Gradient from '../common/Gradient'
 import SmallLogo from "../component/SmallLogo"
@@ -11,13 +11,29 @@ import Cross from "../component/Cross"
 import Schedule from "../component/Schedule"
 import Note from "../component/Note"
 import MyCalendar from '../libs/MyCalendar'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeScreen = ({navigation}) => {
 
   const[schedule, setSchedule] = useState(true)
   const[note, setNote] = useState(false)
   const[plus, setPlus] = useState(false)
+  const [scheduleData, setScheduleData] = useState([]);
 
+  useEffect(() => {
+    const fetchScheduleData = async () => {
+        try {
+            const jsonValue = await AsyncStorage.getItem('scheduleData');
+            if (jsonValue !== null) {
+                const data = JSON.parse(jsonValue);
+                setScheduleData(data);
+            }
+        } catch (error) {
+            console.error('Error retrieving schedule data:', error);
+        }
+    };
+    fetchScheduleData();
+  }, []);
 
   const showSchedule = () => {
     setNote(false)
@@ -112,9 +128,19 @@ const HomeScreen = ({navigation}) => {
               <Text style={styles.scheduleText}>Schedule</Text>
 
               <View style={styles.schedulesCont}>
-                <Text style={styles.schedulesNoText} >You Didn’t Have Any Schedule.</Text>
-
+                
+                {
+                  scheduleData.length > 0 ? 
+                  (scheduleData.map(schedule => (
+                    <View>
+                      
+                    </View>
+                  ))) 
+                  :
+                  (<Text style={styles.schedulesNoText} >You Didn’t Have Any Schedule.</Text>)
+                }
               </View>
+
           </ScrollView>
           )}
 
@@ -232,7 +258,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito-Bold',
     fontSize: 16,
     color: "#ffffff",
-    marginTop: 75
+    marginTop: 95
   },
   schedulesNoText: {
     color: "#ffffff",
@@ -245,8 +271,8 @@ const styles = StyleSheet.create({
   },
   plusIconWrap: {
     position: "absolute",
-    bottom: 0,
-    right: 0,
+    bottom: 20,
+    right: 20,
     zIndex: 5
   },
   plusIconWrapCon: {

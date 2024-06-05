@@ -6,8 +6,6 @@ import Pin from "../component/Pin"
 import { useNavigation } from '@react-navigation/native';
 import TempScreen from '../libs/TempScreen'
 
-
-
 const NoteScreen = () => {
   const navigation = useNavigation();
 
