@@ -1,6 +1,6 @@
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
-import Gradient from '../common/GradientP'
+import Gradient from '../common/Gradient'
 import Arrow from "../component/Arrow"
 import { StatusBar } from 'expo-status-bar'
 import { useNavigation } from '@react-navigation/native';

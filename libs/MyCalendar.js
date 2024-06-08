@@ -10,10 +10,10 @@ const MyCalendar = () => {
       theme={{
         backgroundColor: "transparent",
         calendarBackground: "transparent",
-        selectedDayBackgroundColor: "#3C1F7B",
+        selectedDayBackgroundColor: "#A792F933",
         selectedDayTextColor: "#ffffff",
         dayTextColor: "#ffffff",
-        arrowColor: "#3C1F7B",
+        arrowColor: "#A792F933",
         monthTextColor: "#ffffff",
         textMonthFontWeight: "800",
         textMonthFontSize: 20

@@ -1,34 +1,19 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import { LinearGradient } from 'expo-linear-gradient';
 
 const Gradient = ({children}) => {
   return (
-    <LinearGradient
-        colors={['#2A213E', '#2B125A', '#000000']}
-        start={{ x: 1.0, y: -0.2 }}
-        end={[0, 1]}
-        locations={[0.1, 0.17, 0.95]}
-        style={styles.gradient}
-      >
+    <View style={styles.background}>
         {children}
-      </LinearGradient>
+      </View>
   )
 }
 
 export default Gradient
 
 const styles = StyleSheet.create({
-  gradient: {
-    flex: 1
+  background: {
+    flex: 1,
+    backgroundColor: "#231717"
   }
 })
-
-/* Opening Apps */
-
-// position: relative;
-// width: 414px;
-// height: 896px;
-
-// background: linear-gradient(191.14deg, #2A2A2E -5.44%, #2B125A 52.05%, #000000 112.41%);
-// border-radius: 25px;

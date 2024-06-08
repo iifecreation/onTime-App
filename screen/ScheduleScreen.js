@@ -1,4 +1,4 @@
-import { Modal, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View, Dimensions } from 'react-native'
+import { Modal, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View, Dimensions, KeyboardAvoidingView, Platform } from 'react-native'
 import React, { useState } from 'react'
 import Arrow from "../component/Arrow"
 import Mark from "../component/Mark"
@@ -123,72 +123,70 @@ const ScheduleScreen = () => {
                 </View>
 
             </View>
+                <View style={styles.createScheule}>
+                    <Text style={styles.createScheuleText}>Schedule</Text>
+                    <TextInput style={styles.createScheuleInput} placeholder='Enter Title' onChangeText={(text) => setTitle(text)} />
 
-            <View style={styles.createScheule}>
-                <Text style={styles.createScheuleText}>Schedule</Text>
-                <TextInput style={styles.createScheuleInput} placeholder='Enter Title' onChangeText={(text) => setTitle(text)} />
+                    <View style={styles.createScheuleFull}>
+                        <Text style={styles.createScheuleFullText}>Fullday</Text>
+                        <Switch value={fullday} onValueChange={toggleSwitch} />
+                    </View>
 
-                <View style={styles.createScheuleFull}>
-                    <Text style={styles.createScheuleFullText}>Fullday</Text>
-                    <Switch value={fullday} onValueChange={toggleSwitch} />
+                <View style={styles.createScheulePla}>
+                        <View style={styles.createScheuleFull}>
+                            <Text style={styles.createScheuleFullText}>Start from</Text>
+                            <TouchableOpacity style={styles.createScheuleSecon} onPress={showDatePicker}>
+                                <Text style={styles.createScheuleSeconText}>{selectedDate
+                                    ? `${moment(selectedDate).format('MMMM, Do YYYY hh:mm A')}`
+                                    : `${moment(currentDate).format('MMMM, Do YYYY hh:mm A')}`}
+                                </Text>
+                
+                                <SmallArrow />
+                            </TouchableOpacity>
+                        </View>
+
+                        
+
+                        <View style={styles.createScheuleFull}>
+                            <Text style={styles.createScheuleFullText}>Finish</Text>
+                            <TouchableOpacity style={styles.createScheuleSecon} onPress={showDateFinishPicker}>
+                                <Text style={styles.createScheuleSeconText}>{finishDate
+                                    ? `${moment(finishDate).format('MMMM, Do YYYY hh:mm A')}`
+                                    : `${moment(new Date(currentDate).setDate(currentDate.getDate() + 2)).format('MMMM, Do YYYY hh:mm A')}`}</Text>
+                                <SmallArrow />
+                            </TouchableOpacity>
+                        </View>
+
+                        
+
+                        <View style={styles.createScheuleFull}>
+                            <Text style={styles.createScheuleFullText}>Repeat</Text>
+                            <TouchableOpacity style={styles.createScheuleSecon} onPress={() => toggleRepeatModal()}>
+                                <Text style={styles.createScheuleSeconText}>{selectedRepeatOption}</Text>
+                                <SmallArrow />
+                            </TouchableOpacity>
+                        </View>
+                                    
+                        {/* reminder section start */}
+                        <View style={styles.createScheuleFull}>
+                            <Text style={styles.createScheuleFullText}>Reminder</Text>
+                            <TouchableOpacity style={styles.createScheuleSecon} onPress={() => toggleReminderModal()}>
+                                <Text style={styles.createScheuleSeconText}>{selectedReminderOption}</Text>
+                                <SmallArrow />
+                            </TouchableOpacity>
+                        </View>
+                        {/* reminder section end */}
+
+                        <View style={styles.scheduleInput}>
+                            <TextInput placeholder='Place...' style={[styles.createScheuleInput, {marginBottom: 0}]} onChangeText={(text) => setPlace(text)} />
+                        </View>
+
+                        <View style={styles.scheduleInput}>
+                            <TextInput placeholder='Note...' style={styles.createScheuleInput} multiline onChangeText={(text) => setNote(text)}/>
+                        </View>
                 </View>
 
-               <View style={styles.createScheulePla}>
-                    <View style={styles.createScheuleFull}>
-                        <Text style={styles.createScheuleFullText}>Start from</Text>
-                        <TouchableOpacity style={styles.createScheuleSecon} onPress={showDatePicker}>
-                            <Text style={styles.createScheuleSeconText}>{selectedDate
-                                ? `${moment(selectedDate).format('MMMM, Do YYYY hh:mm A')}`
-                                : `${moment(currentDate).format('MMMM, Do YYYY hh:mm A')}`}
-                            </Text>
-            
-                            <SmallArrow />
-                        </TouchableOpacity>
-                    </View>
-
-                    
-
-                    <View style={styles.createScheuleFull}>
-                        <Text style={styles.createScheuleFullText}>Finish</Text>
-                        <TouchableOpacity style={styles.createScheuleSecon} onPress={showDateFinishPicker}>
-                            <Text style={styles.createScheuleSeconText}>{finishDate
-                                ? `${moment(finishDate).format('MMMM, Do YYYY hh:mm A')}`
-                                : `${moment(new Date(currentDate).setDate(currentDate.getDate() + 2)).format('MMMM, Do YYYY hh:mm A')}`}</Text>
-                            <SmallArrow />
-                        </TouchableOpacity>
-                    </View>
-
-                    
-
-                    <View style={styles.createScheuleFull}>
-                        <Text style={styles.createScheuleFullText}>Repeat</Text>
-                        <TouchableOpacity style={styles.createScheuleSecon} onPress={() => toggleRepeatModal()}>
-                            <Text style={styles.createScheuleSeconText}>{selectedRepeatOption}</Text>
-                            <SmallArrow />
-                        </TouchableOpacity>
-                    </View>
-                                
-                    {/* reminder section start */}
-                    <View style={styles.createScheuleFull}>
-                        <Text style={styles.createScheuleFullText}>Reminder</Text>
-                        <TouchableOpacity style={styles.createScheuleSecon} onPress={() => toggleReminderModal()}>
-                            <Text style={styles.createScheuleSeconText}>{selectedReminderOption}</Text>
-                            <SmallArrow />
-                        </TouchableOpacity>
-                    </View>
-                    {/* reminder section end */}
-
-                    <View style={styles.scheduleInput}>
-                        <TextInput placeholder='Place...' style={[styles.createScheuleInput, {marginBottom: 0}]} onChangeText={(text) => setPlace(text)} />
-                    </View>
-
-                    <View style={styles.scheduleInput}>
-                        <TextInput placeholder='Note...' style={styles.createScheuleInput} multiline onChangeText={(text) => setNote(text)}/>
-                    </View>
-               </View>
-
-            </View>
-
+                </View>
 {/* ==================== modal section ==================== */}
 
             {/* date picker for start date start */}

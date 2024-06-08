@@ -3,46 +3,36 @@ import React, { useState } from 'react'
 import Arrow from "../component/Arrow"
 import Mark from "../component/Mark"
 import Pin from "../component/Pin"
-import UnPin from "../component/Unpin"
-import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Dustin from "../component/Dustin"
 
-const NoteScreen = () => {
-  const navigation = useNavigation();
-  const[title, setTitle] = useState("")
-  const[desc, setDesc] = useState("")
-  const [pinned, setPinned] = useState(false);
+const EditNoteScreen = ({ route, navigation }) => {
+    const { note } = route.params;
+    const [title, setTitle] = useState(note.title);
+    const [desc, setDesc] = useState(note.desc);
 
-  const saveNote = async () => {
-    try {
-      let notes = [];
-      const existingNotes = await AsyncStorage.getItem('noteData');
-      if (existingNotes) {
-        notes = JSON.parse(existingNotes);
-      }
+    const updateNote = async () => {
+        try {
+          const updatedNote = { ...note, title, desc };
+          const notes = JSON.parse(await AsyncStorage.getItem('noteData'));
+          const updatedNotes = notes.map(item => (item.id === updatedNote.id ? updatedNote : item));
+          await AsyncStorage.setItem('noteData', JSON.stringify(updatedNotes));
+          navigation.goBack();
+        } catch (error) {
+          console.error('Error updating note:', error);
+        }
+    };
 
-      const newNote = {
-        id: Date.now(),
-        dateCreated: new Date().toISOString(),
-        title,
-        desc,
-        pinned
-      };
-
-      // If the note is pinned, move it to the beginning of the array
-    // if (pinned) {
-    //     notes.unshift(newNote);
-    //   } else {
-        notes.push(newNote);
-    //   }
-
-    //   notes.push(newNote);
-      await AsyncStorage.setItem('noteData', JSON.stringify(notes));
-      navigation.goBack();
-    } catch (error) {
-      console.error('Error saving note:', error);
-    }
-  };
+    const deleteNote = async () => {
+        try {
+          const notes = JSON.parse(await AsyncStorage.getItem('noteData'));
+          const updatedNotes = notes.filter(item => item.id !== note.id);
+          await AsyncStorage.setItem('noteData', JSON.stringify(updatedNotes));
+          navigation.goBack();
+        } catch (error) {
+          console.error('Error deleting note:', error);
+        }
+    };
 
 
   return (
@@ -53,10 +43,13 @@ const NoteScreen = () => {
                     <Arrow />
                 </TouchableOpacity>
                 <View style={styles.headerNav}>
-                    <TouchableOpacity onPress={() => setPinned(!pinned)}>
-                        {pinned ? <UnPin /> : <Pin />}
+                    <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteNote()} >
+                        <Dustin />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => saveNote()}>
+                    <TouchableOpacity>
+                        <Pin />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => updateNote()}>
                         <Mark />
                     </TouchableOpacity>
                 </View>
@@ -64,14 +57,14 @@ const NoteScreen = () => {
             </View>
             
             <ScrollView style={styles.createScheule}>
-                <Text style={styles.createScheuleText}>Create Note</Text>
+                <Text style={styles.createScheuleText}>Edit Note</Text>
         
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardAvoidingContainer}>
                     <Text style={styles.noteCreateText}>Title</Text>
-                    <TextInput placeholder='Enter title....'  style={styles.noteCreateInput} placeholderTextColor="#fff" onChangeText={(text) => setTitle(text)}/>
+                    <TextInput placeholder='Enter title....'  style={styles.noteCreateInput} placeholderTextColor="#fff" value={title} onChangeText={(text) => setTitle(text)}/>
                     <Text style={[styles.noteCreateText, {marginTop: 20}]}>Description</Text>
                     
-                    <TextInput placeholder='Enter title....' style={[styles.noteCreateInput, {paddingBottom: 20}]} placeholderTextColor="#fff" multiline onChangeText={(text) => setDesc(text)}  />
+                    <TextInput placeholder='Enter title....' style={[styles.noteCreateInput, {paddingBottom: 20}]} value={desc}placeholderTextColor="#fff" multiline onChangeText={(text) => setDesc(text)}  />
                 </KeyboardAvoidingView >
         
             </ScrollView>
@@ -81,7 +74,7 @@ const NoteScreen = () => {
   )
 }
 
-export default NoteScreen
+export default EditNoteScreen
 
 
 const styles = StyleSheet.create({

@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, Switch, View } from 're
 import React from 'react'
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import Gradient from '../common/GradientP';
+import Gradient from '../common/Gradient';
 import Arrow from "../component/Arrow"
 
 const SettingScreen = () => {
