@@ -34,41 +34,35 @@ const EditNoteScreen = ({ route, navigation }) => {
         }
     };
 
-
   return (
     <View style={styles.schedule}>
         <View style={styles.scheduleContainer}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Arrow />
-                </TouchableOpacity>
-                <View style={styles.headerNav}>
-                    <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteNote()} >
-                        <Dustin />
-                    </TouchableOpacity>
-                    <TouchableOpacity>
-                        <Pin />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => updateNote()}>
-                        <Mark />
-                    </TouchableOpacity>
-                </View>
-
+              <TouchableOpacity onPress={() => navigation.goBack()} style={{flexDirection: "row", gap: 10}}>
+                  <Arrow />
+                  <Text style={styles.createScheuleText}>Edit Note</Text>
+              </TouchableOpacity>
+              <View style={styles.headerNav}>
+                  <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteNote()} >
+                      <Dustin />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => updateNote()}>
+                      <Mark />
+                  </TouchableOpacity>
+              </View>
             </View>
             
             <ScrollView style={styles.createScheule}>
-                <Text style={styles.createScheuleText}>Edit Note</Text>
-        
-                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardAvoidingContainer}>
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardAvoidingContainer}>
                     <Text style={styles.noteCreateText}>Title</Text>
                     <TextInput placeholder='Enter title....'  style={styles.noteCreateInput} placeholderTextColor="#fff" value={title} onChangeText={(text) => setTitle(text)}/>
                     <Text style={[styles.noteCreateText, {marginTop: 20}]}>Description</Text>
                     
                     <TextInput placeholder='Enter title....' style={[styles.noteCreateInput, {paddingBottom: 20}]} value={desc}placeholderTextColor="#fff" multiline onChangeText={(text) => setDesc(text)}  />
-                </KeyboardAvoidingView >
+              </KeyboardAvoidingView >
         
             </ScrollView>
-            
+
         </View>
     </View>
   )

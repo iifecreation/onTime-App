@@ -33,9 +33,9 @@ const SettingScreen = () => {
           <View style={styles.notiCont}>
             <Text style={styles.notiContHeader}>Extras</Text>
             <Text style={styles.notiContHeaderText}>Help</Text>
-            <View style={styles.notiContSwitch}>
-                <Text style={styles.notiContHeaderText}>Notification bar</Text>
-            </View>
+            <TouchableOpacity style={styles.notiContSwitch} onPress={() => navigation.navigate('About')}>
+                <Text style={styles.notiContHeaderText}>About</Text>
+            </TouchableOpacity>
           </View>
 
           

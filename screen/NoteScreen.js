@@ -11,7 +11,6 @@ const NoteScreen = () => {
   const navigation = useNavigation();
   const[title, setTitle] = useState("")
   const[desc, setDesc] = useState("")
-  const [pinned, setPinned] = useState(false);
 
   const saveNote = async () => {
     try {
@@ -26,17 +25,10 @@ const NoteScreen = () => {
         dateCreated: new Date().toISOString(),
         title,
         desc,
-        pinned
       };
 
-      // If the note is pinned, move it to the beginning of the array
-    // if (pinned) {
-    //     notes.unshift(newNote);
-    //   } else {
-        notes.push(newNote);
-    //   }
+      notes.push(newNote);
 
-    //   notes.push(newNote);
       await AsyncStorage.setItem('noteData', JSON.stringify(notes));
       navigation.goBack();
     } catch (error) {
@@ -53,9 +45,9 @@ const NoteScreen = () => {
                     <Arrow />
                 </TouchableOpacity>
                 <View style={styles.headerNav}>
-                    <TouchableOpacity onPress={() => setPinned(!pinned)}>
+                    {/* <TouchableOpacity onPress={() => setPinned(!pinned)}>
                         {pinned ? <UnPin /> : <Pin />}
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     <TouchableOpacity onPress={() => saveNote()}>
                         <Mark />
                     </TouchableOpacity>

@@ -2,7 +2,12 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 
-const MyCalendar = () => {
+const MyCalendar = ({ onDateSelect }) => {
+  const handleDateSelect = (date) => {
+    // Call the callback function with the selected date
+    console.log(date.dateString);
+    onDateSelect(date.dateString);
+  };
   return (
     <View style={{height: 250}}>
       <Calendar 
@@ -18,6 +23,7 @@ const MyCalendar = () => {
         textMonthFontWeight: "800",
         textMonthFontSize: 20
       }}
+      onDayPress={handleDateSelect}
       />
     </View>
   );

@@ -6,7 +6,6 @@ import SmallLogo from "../component/SmallLogo"
 import Notification from "../component/Notification"
 import Plus from "../component/Plus"
 import Search from "../component/Search"
-import Pin from "../component/Pin"
 import Cross from "../component/Cross"
 import Schedule from "../component/Schedule"
 import Note from "../component/Note"
@@ -14,7 +13,6 @@ import MyCalendar from '../libs/MyCalendar'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
 import Dustin from "../component/Dustin"
-import UnPin from "../component/Unpin"
 // import {CheckBox} from 'rn-inkpad';
 
 const HomeScreen = ({navigation}) => {
@@ -23,8 +21,8 @@ const HomeScreen = ({navigation}) => {
   const[plus, setPlus] = useState(false)
   const [scheduleData, setScheduleData] = useState([]);
   const [noteData, setNoteData] = useState([]);
-  const [pinnedNotes, setPinnedNotes] = useState([]);
-  const [unpinnedNotes, setUnpinnedNotes] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Function to group schedules by creation date
   const groupByCreationDate = useMemo(() =>  {
@@ -83,10 +81,6 @@ const HomeScreen = ({navigation}) => {
         if (data) {
           const parsedData = JSON.parse(data).reverse()
           setNoteData(parsedData);
-
-          // Filter pinned notes
-          const pinned = parsedData.filter(note => note.pinned);
-          setPinnedNotes(pinned);
         }
       } catch (error) {
         console.error('Error fetching notes:', error);
@@ -119,47 +113,23 @@ const HomeScreen = ({navigation}) => {
     try {
       const updatedNotes = noteData.filter(note => note.id !== id);
       await AsyncStorage.setItem('noteData', JSON.stringify(updatedNotes));
-      setNoteData(updatedNotes);
+      setNoteData(updatedNotes.reverse());
     } catch (error) {
       console.error('Error deleting note:', error);
     }
   };
 
-  const pinNote =  useMemo(() =>  {
-  return  async (id) => {
-    try {
-        const noteIndex = noteData.findIndex(note => note.id === id);
-        if (noteIndex !== -1) {
-            const noteToPin = noteData[noteIndex];
-            const updatedNoteData = [...noteData];
-            const note = updatedNoteData.splice(noteIndex, 1)[0];
-            note.pinned = !note.pinned; // Toggle pin status
-            const insertIndex = note.pinned ? Math.min(pinnedNotes.length, 2) : updatedNoteData.length;
-            updatedNoteData.splice(insertIndex, 0, note);
-            setNoteData(updatedNoteData);
-            await AsyncStorage.setItem('noteData', JSON.stringify(updatedNoteData));
-        }
-    } catch (error) {
-        console.error('Error pinning note:', error);
-    }
-  };
-  })
-
-  useEffect(() => {
-    // Separate pinned and unpinned notes...
-    const pinned = noteData.filter(note => note.pinned);
-    const unpinned = noteData.filter(note => !note.pinned);
-    setPinnedNotes(pinned);
-    setUnpinnedNotes(unpinned);
-  }, [noteData]);
-
   const renderNoteItem = ({ item }) => {
-    console.log(item);
+    if (searchQuery && !item.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return null; 
+    }
+
+    const truncatedDesc = item.desc.split(' ').slice(0, 25).join(' ');
     return (
       <View style={styles.showNoteContentContainer}>
         <TouchableOpacity onPress={() => navigation.navigate('EditNote', { note: item })}>
           <Text style={styles.showNoteTexthead}>{item.title}</Text>
-          <Text style={styles.showNoteTextDesc}>{item.desc}...</Text>
+          <Text style={styles.showNoteTextDesc}>{truncatedDesc}...</Text>
         </TouchableOpacity>
         <View style={styles.showNoteDateCon}>
           <Text style={styles.showNoteDate}>{new Date(item.dateCreated).toLocaleDateString()}</Text>
@@ -167,15 +137,29 @@ const HomeScreen = ({navigation}) => {
             <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteNote(item.id)}>
               <Dustin />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => pinNote(item.id)}>
-              {pinnedNotes.some(note => note.id === item.id) ? <UnPin /> : <Pin />}
-            </TouchableOpacity>
           </View>
         </View>
       </View>
     )
   }
 
+  // Function to filter schedule data based on selected date
+  const filterScheduleData = useCallback(() => {
+    if (!selectedDate) {
+      return scheduleData; // If no date is selected, return all schedule data
+    }
+    return scheduleData[selectedDate] || []; // Return schedule data for selected date
+  }, [scheduleData, selectedDate]);
+
+  // Callback function to handle date selection from calendar
+  const handleDateSelect = useCallback(async (date) => {
+    setSelectedDate(date);
+  }, []);
+
+  // Use filterScheduleData to get filtered schedule data
+  const filteredScheduleData = filterScheduleData();
+  console.log(filteredScheduleData);
+  console.log(scheduleData);
   return (
     <View style={styles.onBoard}>
       <StatusBar style='light' />
@@ -246,17 +230,74 @@ const HomeScreen = ({navigation}) => {
 
           {schedule && (
             <ScrollView style={styles.scheduleContainer}>
-              <MyCalendar />
+              <MyCalendar onDateSelect={handleDateSelect} />
 
               <Text style={styles.scheduleText}>Schedule</Text>
 
               <View style={styles.schedulesCont}>
+                {/* Render filteredScheduleData instead of scheduleData */}
+                
+                {filteredScheduleData && Object.keys(filteredScheduleData).length > 0 ? (
+                  Object.entries(filteredScheduleData).map(([date, schedules]) => (
+                    <View key={date} style={styles.scheduleData}>
+                      <View style={styles.scheduleDataDate}>
+                        <View style={styles.scheduleDataText}>
+                          <Text style={styles.scheduleDataTextInside}>{moment(date).format('D')}</Text>
+                        </View>
+                        <View style={styles.scheduleDataLine}></View>
+                      </View>
+                      <View style={styles.returnScheduleData}>
+                        {schedules.map(schedule =>  { (
+                          <View key={schedule.id} style={styles.returnSchedule}>
+                            <View style={styles.returnScheduleHeader}>
+                              <Text style={styles.returnScheduleHeaderText}>{schedule.title}</Text>
+                              <View style={styles.returnScheduleHeaderIcon}>
+                                {/* <CheckBox iconColor='#fff' iconSize={17} textStyle={{display: "none"}} /> */}
+                                <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteSchedule(schedule.id)}>
+                                  <Dustin />
+                                </TouchableOpacity>
+                              </View>
+                            </View>
 
-                {Object.keys(scheduleData).length > 0 ? (
+                            <TouchableOpacity onPress={() => navigation.navigate('EditSchedule', { schedule: schedule })}>
+                              <View style={styles.returnScheduleContent}>
+                                <Text style={styles.returnScheduleContentText}>Date:</Text>
+                                <Text style={styles.returnScheduleContentText1}>{moment(schedule.selectedDate).format("D/MM/YYYY")} - {moment(schedule.finishDate).format("D/MM/YYYY")}</Text>
+                              </View>
+
+                              <View style={styles.returnScheduleContent}>
+                                <Text style={styles.returnScheduleContentText}>Time:</Text>
+                                <Text style={styles.returnScheduleContentText1}>{moment(schedule.selectedDate).format("hh.mm a")} - {moment(schedule.finishDate).format("hh.mm a")}</Text>
+                              </View>
+
+                              <View style={styles.returnScheduleContent}>
+                                <Text style={styles.returnScheduleContentText}>Place:</Text>
+                                <Text style={styles.returnScheduleContentText1}>{schedule.place}</Text>
+                              </View>
+
+                              <View style={styles.returnScheduleContent}>
+                                <Text style={styles.returnScheduleContentText}>Notes:</Text>
+                                <Text style={styles.returnScheduleContentText1}>{schedule.note}</Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                        )})}
+                      </View>
+                    </View>
+                  ))
+                  ) : (
+                    <View style={styles.schedulesNoTextWrapper}>
+                      <Text style={styles.schedulesNoText}>No schedules for selected date.</Text>
+                    </View>
+                )}
+
+                {/* {Object.keys(scheduleData).length > 0 ? (
                   Object.entries(scheduleData).map(([date, schedules]) => (
                     <View key={date} style={styles.scheduleData}>
                         <View style={styles.scheduleDataDate}>
-                          <Text style={styles.scheduleDataText}>{moment(date).format('D')}</Text>
+                          <View style={styles.scheduleDataText}>
+                            <Text style={styles.scheduleDataTextInside}>{moment(date).format('D')}</Text>
+                          </View>
                           <View style={styles.scheduleDataLine}></View>
                         </View>
                         <View style={styles.returnScheduleData}>
@@ -265,7 +306,7 @@ const HomeScreen = ({navigation}) => {
                                 <View style={styles.returnScheduleHeader}>
                                   <Text style={styles.returnScheduleHeaderText}>{schedule.title}</Text>
                                   <View style={styles.returnScheduleHeaderIcon}>
-                                    {/* <CheckBox iconColor='#fff' iconSize={17} textStyle={{display: "none"}} /> */}
+                                    <CheckBox iconColor='#fff' iconSize={17} textStyle={{display: "none"}} />
                                     <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteSchedule(schedule.id)}>
                                         <Dustin />
                                     </TouchableOpacity>
@@ -303,10 +344,10 @@ const HomeScreen = ({navigation}) => {
                       <Text style={styles.schedulesNoButton}>Create Schedule</Text>
                     </TouchableOpacity>
                   </View>
-                )}
+                )} */}
               </View>
 
-          </ScrollView>
+            </ScrollView>
           )}
 
           {note && (
@@ -314,7 +355,9 @@ const HomeScreen = ({navigation}) => {
 
               <View style={styles.noteSearch}>
                 <Search />
-                <TextInput placeholder='Search for note' />
+                <TextInput placeholder='Search for note' 
+                  value={searchQuery}
+                  onChangeText={setSearchQuery} />
               </View>
               
               <ScrollView>
@@ -329,10 +372,10 @@ const HomeScreen = ({navigation}) => {
                       </View>
                     ): (
                       <FlatList
-                      data={[...pinnedNotes, ...unpinnedNotes]}
-                      renderItem={renderNoteItem}
-                      keyExtractor={item => item.id.toString()}
-                    />
+                        data={noteData}
+                        renderItem={renderNoteItem}
+                        keyExtractor={item => item.id.toString()}
+                      />
                     )
                   }
                   
@@ -457,10 +500,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   showNoteContentContainer: {
-    backgroundColor: "#7E64FF",
+    backgroundColor: "#A792F933",
     borderRadius: 15,
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingVertical: 10,
     marginBottom: 10,
   },
   showNoteTexthead: {
@@ -524,16 +567,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 50,
     width: 35,
-    height: 35,
-    fontSize: 16,
-    textAlign: "center",
+    height: 35,    
     borderColor: "#A792F933",
-    borderWidth: 3,
-    fontFamily: 'Nunito-Bold',
-    color: "#515151",
+    borderWidth: 3, 
     justifyContent: "center",
     alignItems: "center",
     borderStyle: "solid"
+  },
+  scheduleDataTextInside: {
+    fontFamily: 'Nunito-Bold',
+    color: "#515151",
+    fontSize: 16,
   },
   scheduleDataDate:{
     flexDirection: "column",
