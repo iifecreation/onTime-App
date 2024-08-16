@@ -1,4 +1,4 @@
-import { FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Button } from 'react-native'
+import { FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
 import Gradient from '../common/Gradient'
@@ -13,6 +13,8 @@ import MyCalendar from '../libs/MyCalendar'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
 import Dustin from "../component/Dustin"
+import { LIGHT_MODE } from '../common/style'
+import SQLite from 'react-native-sqlite-storage';
 // import {CheckBox} from 'rn-inkpad';
 
 const HomeScreen = ({navigation}) => {
@@ -162,12 +164,12 @@ const HomeScreen = ({navigation}) => {
   console.log(scheduleData);
   return (
     <View style={styles.onBoard}>
-      <StatusBar style='light' />
+      <StatusBar style='dark' />
       <Gradient>
         <View style={styles.onBoardLogo}>
 
           <View style={styles.plusIconWrap}>
-            <TouchableOpacity  onPress={() => changePlus()}>
+            <TouchableOpacity  onPress={() => changePlus()} activeOpacity={0.8}>
               {plus || <View style={styles.plusIconWrapCon}>
                 <Plus />
                 </View>}
@@ -180,19 +182,19 @@ const HomeScreen = ({navigation}) => {
               <View style={styles.plusIconThrid}>
                 <View style={[styles.showMoreOptionsCon, {alignSelf: "flex-end"}]}>
                   <Text style={styles.showMoreOptionsText}>Note</Text>
-                  <TouchableOpacity style={styles.plusIconWrapCon} onPress={() => {navigation.navigate("Note"); changePlusBack()}}>
+                  <TouchableOpacity style={styles.plusIconWrapCon} onPress={() => {navigation.navigate("Note"); changePlusBack()}} activeOpacity={0.8}>
                     <Note />
                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.showMoreOptionsCon}>
                   <Text style={styles.showMoreOptionsText}>Schedule</Text>
-                  <TouchableOpacity style={styles.plusIconWrapCon} onPress={() => {navigation.navigate("Schedule"); changePlusBack()}}>
+                  <TouchableOpacity style={styles.plusIconWrapCon} onPress={() => {navigation.navigate("Schedule"); changePlusBack()}} activeOpacity={0.8}>
                     <Schedule />
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity style={[styles.plusIconWrapCon, {alignSelf: "flex-end"}]} onPress={() => changePlusBack()}>
+                <TouchableOpacity style={[styles.plusIconWrapCon, {alignSelf: "flex-end"}]} onPress={() => changePlusBack()} activeOpacity={0.8}>
                   <Cross />
                 </TouchableOpacity>
                 
@@ -201,11 +203,11 @@ const HomeScreen = ({navigation}) => {
           )}
 
           <View style={styles.headerBoard}>
-            <SmallLogo />
+            <SmallLogo color="#403B36" />
 
             <View style={styles.notified}>
                 <TouchableOpacity onPress={() => navigation.navigate("Notified")}>
-                  <Notification />
+                  <Notification color="#403B36" />
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.circleContainer} onPress={() => navigation.navigate("Setting")}>
@@ -290,61 +292,6 @@ const HomeScreen = ({navigation}) => {
                       <Text style={styles.schedulesNoText}>No schedules for selected date.</Text>
                     </View>
                 )}
-
-                {/* {Object.keys(scheduleData).length > 0 ? (
-                  Object.entries(scheduleData).map(([date, schedules]) => (
-                    <View key={date} style={styles.scheduleData}>
-                        <View style={styles.scheduleDataDate}>
-                          <View style={styles.scheduleDataText}>
-                            <Text style={styles.scheduleDataTextInside}>{moment(date).format('D')}</Text>
-                          </View>
-                          <View style={styles.scheduleDataLine}></View>
-                        </View>
-                        <View style={styles.returnScheduleData}>
-                          {schedules.map(schedule => (
-                            <View key={schedule.id} style={styles.returnSchedule}>
-                                <View style={styles.returnScheduleHeader}>
-                                  <Text style={styles.returnScheduleHeaderText}>{schedule.title}</Text>
-                                  <View style={styles.returnScheduleHeaderIcon}>
-                                    <CheckBox iconColor='#fff' iconSize={17} textStyle={{display: "none"}} />
-                                    <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteSchedule(schedule.id)}>
-                                        <Dustin />
-                                    </TouchableOpacity>
-                                  </View>
-                                </View>
-
-                                <View style={styles.returnScheduleContent}>
-                                  <Text style={styles.returnScheduleContentText}>Date:</Text>
-                                  <Text style={styles.returnScheduleContentText1}>{moment(schedule.selectedDate).format("D/MM/YYYY")} - {moment(schedule.finishDate).format("D/MM/YYYY")}</Text>
-                                </View>
-
-                                <View style={styles.returnScheduleContent}>
-                                  <Text style={styles.returnScheduleContentText}>Time:</Text>
-                                  <Text style={styles.returnScheduleContentText1}>{moment(schedule.selectedDate).format("hh.mm a")} - {moment(schedule.finishDate).format("hh.mm a")}</Text>
-                                </View>
-
-                                <View style={styles.returnScheduleContent}>
-                                  <Text style={styles.returnScheduleContentText}>Place:</Text>
-                                  <Text style={styles.returnScheduleContentText1}>{schedule.place}</Text>
-                                </View>
-
-                                <View style={styles.returnScheduleContent}>
-                                  <Text style={styles.returnScheduleContentText}>Notes:</Text>
-                                  <Text style={styles.returnScheduleContentText1}>{schedule.note}</Text>
-                                </View>
-                            </View>
-                          ))}
-                        </View>
-                    </View>
-                  ))
-                ) : (
-                  <View style={styles.schedulesNoTextWrapper}>
-                    <Text style={styles.schedulesNoText} >You Didn’t Have Any Schedule.</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate("Schedule")}>
-                      <Text style={styles.schedulesNoButton}>Create Schedule</Text>
-                    </TouchableOpacity>
-                  </View>
-                )} */}
               </View>
 
             </ScrollView>
@@ -360,7 +307,7 @@ const HomeScreen = ({navigation}) => {
                   onChangeText={setSearchQuery} />
               </View>
               
-              <ScrollView>
+              <View>
                 <View style={styles.showNoteContent}>
                   {
                     noteData.length === 0 ? (
@@ -380,7 +327,7 @@ const HomeScreen = ({navigation}) => {
                   }
                   
                 </View>
-              </ScrollView>
+              </View>
               
             </View>
           )}
@@ -416,14 +363,14 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 50,
-    backgroundColor: "#ffffff"
+    backgroundColor: "#403B36"
   },
   notified: {
     flexDirection: "row",
     gap: 30
   },
   homeSelect: {
-    backgroundColor: "#A792F933",
+    backgroundColor: "#D9614C",
     borderRadius: 10,
     flexDirection: "row",
     alignItems: "center",
@@ -476,7 +423,7 @@ const styles = StyleSheet.create({
     zIndex: 5
   },
   plusIconWrapCon: {
-    backgroundColor: "#A792F9",
+    backgroundColor: LIGHT_MODE.text,
     borderRadius: 50,
     padding: 15,
     width: 50,
@@ -500,7 +447,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   showNoteContentContainer: {
-    backgroundColor: "#A792F933",
+    backgroundColor: LIGHT_MODE.main,
     borderRadius: 15,
     paddingHorizontal: 20,
     paddingVertical: 10,
@@ -534,7 +481,7 @@ const styles = StyleSheet.create({
   },
   showMoreOptions: {
     position: "absolute",
-    backgroundColor: "#282530",
+    backgroundColor: LIGHT_MODE.light,
     left: 0,
     right: 0,
     bottom: 0,
@@ -551,7 +498,7 @@ const styles = StyleSheet.create({
     alignItems: "center"
   },
   showMoreOptionsText: {
-    color: "#ffffff",
+    color: LIGHT_MODE.text,
     fontFamily: 'Nunito-SemiBold',
     fontSize: 14
   },

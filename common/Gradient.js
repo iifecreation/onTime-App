@@ -14,6 +14,6 @@ export default Gradient
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    backgroundColor: "#231717"
+    backgroundColor: "#F8EEE2"
   }
 })

@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 import Gradient from '../common/Gradient'
 import Logo from "../component/Logo"
 import { StatusBar } from 'expo-status-bar'
+import { LIGHT_MODE } from '../common/style'
 
 const OnboardingScreen = ({navigation}) => {
   useEffect(() => {
@@ -15,12 +16,10 @@ const OnboardingScreen = ({navigation}) => {
 
   return (
     <View style={styles.onBoard}>
-      <StatusBar style='light' />
-      <Gradient>
+      <StatusBar style={LIGHT_MODE.status} />
         <View style={styles.onBoardLogo}>
           <Logo />
         </View>
-      </Gradient>
     </View>
   )
 }
@@ -29,7 +28,8 @@ export default OnboardingScreen
 
 const styles = StyleSheet.create({
     onBoard: {
-        flex: 1
+      flex: 1,
+      backgroundColor: LIGHT_MODE.main
     },
     onBoardLogo: {
       flex: 1,

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Svg, { Path } from 'react-native-svg';
 
-function CustomSvg(props) {
+function CustomSvg({props, color}) {
   return (
     <Svg
       width={18}
@@ -12,7 +12,7 @@ function CustomSvg(props) {
     >
       <Path
         d="M1 7.66667L7.15385 13L17 1"
-        stroke="white"
+        stroke={color}
         strokeWidth={2}
         strokeLinecap="round"
       />

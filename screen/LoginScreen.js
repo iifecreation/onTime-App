@@ -3,20 +3,19 @@ import React from 'react'
 import Gradient from '../common/Gradient'
 import Logo from "../component/Logo"
 import { StatusBar } from 'expo-status-bar'
+import { LIGHT_MODE } from '../common/style'
 
 const LoginScreen = ({navigation}) => {
   return (
     <View style={styles.onBoard}>
-      <StatusBar style='light' />
-      <Gradient>
+      <StatusBar style={LIGHT_MODE.status} />
         <View style={styles.onBoardLogo}>
           <Logo />
           <Text style={styles.onBoardLogoText}>Make yourself more on time</Text>
-          <TouchableOpacity style={styles.Logwarn} onPress={() => navigation.navigate('Home')}>
+          <TouchableOpacity style={styles.Logwarn} activeOpacity={0.6} onPress={() => navigation.navigate('Home')}>
             <Text style={styles.LogwarnText}>start</Text>
           </TouchableOpacity>
         </View>
-      </Gradient>
     </View>
   )
 }
@@ -25,7 +24,8 @@ export default LoginScreen
 
 const styles = StyleSheet.create({
   onBoard: {
-    flex: 1
+    flex: 1,
+    backgroundColor: LIGHT_MODE.main
   },
   onBoardLogo: {
     flex: 1,
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     borderRadius: 12
   },
   LogwarnText: {
-    color: "#0A0416",
+    color: LIGHT_MODE.text,
     fontFamily: "Montserrat-Bold",
     fontSize: 24,
     textAlign: "center"

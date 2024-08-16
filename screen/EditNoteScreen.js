@@ -5,6 +5,7 @@ import Mark from "../component/Mark"
 import Pin from "../component/Pin"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Dustin from "../component/Dustin"
+import { LIGHT_MODE } from '../common/style'
 
 const EditNoteScreen = ({ route, navigation }) => {
     const { note } = route.params;
@@ -37,22 +38,22 @@ const EditNoteScreen = ({ route, navigation }) => {
   return (
     <View style={styles.schedule}>
         <View style={styles.scheduleContainer}>
-            <View style={styles.header}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={{flexDirection: "row", gap: 10}}>
-                  <Arrow />
-                  <Text style={styles.createScheuleText}>Edit Note</Text>
-              </TouchableOpacity>
-              <View style={styles.headerNav}>
-                  <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteNote()} >
-                      <Dustin />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => updateNote()}>
-                      <Mark />
-                  </TouchableOpacity>
-              </View>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{flexDirection: "row", gap: 10}} activeOpacity={0.7}>
+                <Arrow color={LIGHT_MODE.text} />
+                <Text style={styles.createScheuleText}>Edit Note</Text>
+            </TouchableOpacity>
+            <View style={styles.headerNav}>
+                <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteNote()} activeOpacity={0.7} >
+                    <Dustin color={LIGHT_MODE.text} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => updateNote()} activeOpacity={0.7}>
+                    <Mark color={LIGHT_MODE.text} />
+                </TouchableOpacity>
             </View>
+          </View>
             
-            <ScrollView style={styles.createScheule}>
+          <ScrollView style={styles.createScheule}>
             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardAvoidingContainer}>
                     <Text style={styles.noteCreateText}>Title</Text>
                     <TextInput placeholder='Enter title....'  style={styles.noteCreateInput} placeholderTextColor="#fff" value={title} onChangeText={(text) => setTitle(text)}/>
@@ -61,7 +62,7 @@ const EditNoteScreen = ({ route, navigation }) => {
                     <TextInput placeholder='Enter title....' style={[styles.noteCreateInput, {paddingBottom: 20}]} value={desc}placeholderTextColor="#fff" multiline onChangeText={(text) => setDesc(text)}  />
               </KeyboardAvoidingView >
         
-            </ScrollView>
+          </ScrollView>
 
         </View>
     </View>
@@ -73,7 +74,7 @@ export default EditNoteScreen
 
 const styles = StyleSheet.create({
   schedule: {
-      backgroundColor: "#282530",
+      backgroundColor: LIGHT_MODE.light,
       flex: 1
   },
   scheduleContainer: {
@@ -96,10 +97,9 @@ const styles = StyleSheet.create({
       paddingBottom: 100
   },
   createScheuleText: {
-      color: "#ffffff",
+      color: LIGHT_MODE.text,
       fontFamily: 'Nunito-SemiBold',
-      fontSize: 18,
-      marginBottom: 30
+      fontSize: 18
   },
   noteCreateText: {
     color: "#ffffff",

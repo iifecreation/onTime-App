@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { LIGHT_MODE } from '../common/style';
 
 const MyCalendar = ({ onDateSelect }) => {
   const handleDateSelect = (date) => {
@@ -15,13 +16,15 @@ const MyCalendar = ({ onDateSelect }) => {
       theme={{
         backgroundColor: "transparent",
         calendarBackground: "transparent",
-        selectedDayBackgroundColor: "#A792F933",
-        selectedDayTextColor: "#ffffff",
-        dayTextColor: "#ffffff",
-        arrowColor: "#A792F933",
-        monthTextColor: "#ffffff",
+        selectedDayBackgroundColor: LIGHT_MODE.main,
+        selectedDayTextColor: LIGHT_MODE.text,
+        dayTextColor: LIGHT_MODE.text,
+        arrowColor: LIGHT_MODE.main,
+        monthTextColor: LIGHT_MODE.main,
         textMonthFontWeight: "800",
-        textMonthFontSize: 20
+        textMonthFontSize: 20,
+        todayBackgroundColor: LIGHT_MODE.main,
+        todayTextColor: "#fff"
       }}
       onDayPress={handleDateSelect}
       />

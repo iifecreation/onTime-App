@@ -11,6 +11,7 @@ import ScheduleScreen from './screen/ScheduleScreen';
 import EditNoteScreen from './screen/EditNoteScreen';
 import AboutScreen from './screen/AboutScreen';
 import EditScheduleScreen from './screen/EditScheduleScreen';
+import { ActivityIndicator, View } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +24,14 @@ export default function App() {
     'Nunito-SemiBold': require('./assets/fonts/Nunito-SemiBold.ttf'),
     'Nunito-Regular': require('./assets/fonts/Nunito-Regular.ttf'),
   });
+
+  if(!fontsLoaded){
+    return(
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    )
+  }
 
   return (
     <NavigationContainer>

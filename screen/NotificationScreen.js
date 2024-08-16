@@ -4,6 +4,7 @@ import Gradient from '../common/Gradient'
 import Arrow from "../component/Arrow"
 import { StatusBar } from 'expo-status-bar'
 import { useNavigation } from '@react-navigation/native';
+import { LIGHT_MODE } from '../common/style'
 
 const Notification = () => {
 
@@ -11,13 +12,13 @@ const Notification = () => {
 
   return (
     <View style={styles.notified}>
-      <StatusBar style='light' />
+      <StatusBar style={LIGHT_MODE.status} />
       <Gradient> 
         <ScrollView style={styles.notifiedWrapper}>
           
           <View style={styles.notifiedHeader}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Arrow />
+            <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.6}>
+              <Arrow color={LIGHT_MODE.text} />
             </TouchableOpacity>
             <Text style={styles.notifiedHeaderText}>Notification</Text>
           </View>
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   notifiedHeaderText : {
-    color: "#ffffff",
+    color: LIGHT_MODE.text,
     fontFamily: 'Nunito-SemiBold',
     fontSize: 16
   },
@@ -77,16 +78,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: 1,
-    borderBottomColor: "#828282",
+    borderBottomColor: LIGHT_MODE.text,
     paddingVertical: 10
   },
   notifiedContentText1: {
-    color: "#ffffff",
+    color: LIGHT_MODE.text,
     fontFamily: 'Nunito-SemiBold',
     fontSize: 15
   },
   notifiedContentText2: {
-    color: "#828282",
+    color: LIGHT_MODE.main,
     fontFamily: 'Nunito-Regular',
     fontSize: 12
   }
