@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { LIGHT_MODE } from '../common/style';
+import { useTheme } from '../context/ThemeProvider';
 
 const MyCalendar = ({ onDateSelect }) => {
+  const{theme} = useTheme()
+  
   const handleDateSelect = (date) => {
     // Call the callback function with the selected date
     console.log(date.dateString);
@@ -16,14 +18,14 @@ const MyCalendar = ({ onDateSelect }) => {
       theme={{
         backgroundColor: "transparent",
         calendarBackground: "transparent",
-        selectedDayBackgroundColor: LIGHT_MODE.main,
-        selectedDayTextColor: LIGHT_MODE.text,
-        dayTextColor: LIGHT_MODE.text,
-        arrowColor: LIGHT_MODE.main,
-        monthTextColor: LIGHT_MODE.main,
+        selectedDayBackgroundColor: theme.main,
+        selectedDayTextColor: theme.text,
+        dayTextColor: theme.text,
+        arrowColor: theme.main,
+        monthTextColor: theme.main,
         textMonthFontWeight: "800",
         textMonthFontSize: 20,
-        todayBackgroundColor: LIGHT_MODE.main,
+        todayBackgroundColor: theme.main,
         todayTextColor: "#fff"
       }}
       onDayPress={handleDateSelect}

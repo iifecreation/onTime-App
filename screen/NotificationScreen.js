@@ -4,44 +4,45 @@ import Gradient from '../common/Gradient'
 import Arrow from "../component/Arrow"
 import { StatusBar } from 'expo-status-bar'
 import { useNavigation } from '@react-navigation/native';
-import { LIGHT_MODE } from '../common/style'
+import { useTheme } from '../context/ThemeProvider'
 
 const Notification = () => {
 
   const navigation = useNavigation();
+  const {theme} = useTheme()
 
   return (
     <View style={styles.notified}>
-      <StatusBar style={LIGHT_MODE.status} />
+      <StatusBar style={theme.status} />
       <Gradient> 
         <ScrollView style={styles.notifiedWrapper}>
           
           <View style={styles.notifiedHeader}>
             <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.6}>
-              <Arrow color={LIGHT_MODE.text} />
+              <Arrow color={theme.text} />
             </TouchableOpacity>
-            <Text style={styles.notifiedHeaderText}>Notification</Text>
+            <Text style={[styles.notifiedHeaderText, {color: theme.text}]}>Notification</Text>
           </View>
 
           <View style={styles.notifiedContent}>
-            <View style={styles.notifiedContentPart}>
-              <Text style={styles.notifiedContentText1}>Dinner with Anna</Text>
-              <Text style={styles.notifiedContentText2}>20 Sep 2021 08:00 PM</Text>
+            <View style={[styles.notifiedContentPart, {borderColor: theme.text}]}>
+              <Text style={[styles.notifiedContentText1, {color: theme.text}]}>Dinner with Anna</Text>
+              <Text style={[styles.notifiedContentText2, {color: theme.main}]}>20 Sep 2021 08:00 PM</Text>
             </View>
 
-            <View style={styles.notifiedContentPart}>
-              <Text style={styles.notifiedContentText1}>Pay House Tax</Text>
-              <Text style={styles.notifiedContentText2}>20 Sep 2021 08:00 PM</Text>
+            <View style={[styles.notifiedContentPart, {borderColor: theme.text}]}>
+              <Text style={[styles.notifiedContentText1, {color: theme.text}]}>Pay House Tax</Text>
+              <Text style={[styles.notifiedContentText2, {color: theme.main}]}>20 Sep 2021 08:00 PM</Text>
             </View>
 
-            <View style={styles.notifiedContentPart}>
-              <Text style={styles.notifiedContentText1}>Make A New Proposal</Text>
-              <Text style={styles.notifiedContentText2}>20 Sep 2021 08:00 PM</Text>
+            <View style={[styles.notifiedContentPart, {borderColor: theme.text}]}>
+              <Text style={[styles.notifiedContentText1, {color: theme.text}]}>Make A New Proposal</Text>
+              <Text style={[styles.notifiedContentText2, {color: theme.main}]}>20 Sep 2021 08:00 PM</Text>
             </View>
 
-            <View style={styles.notifiedContentPart}>
-              <Text style={styles.notifiedContentText1}>Meeting with A New Client</Text>
-              <Text style={styles.notifiedContentText2}>20 Sep 2021 08:00 PM</Text>
+            <View style={[styles.notifiedContentPart, {borderColor: theme.text}]}>
+              <Text style={[styles.notifiedContentText1, {color: theme.text}]}>Meeting with A New Client</Text>
+              <Text style={[styles.notifiedContentText2, {color: theme.main}]}>20 Sep 2021 08:00 PM</Text>
             </View>
           </View>
 
@@ -69,7 +70,6 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   notifiedHeaderText : {
-    color: LIGHT_MODE.text,
     fontFamily: 'Nunito-SemiBold',
     fontSize: 16
   },
@@ -78,16 +78,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: 1,
-    borderBottomColor: LIGHT_MODE.text,
     paddingVertical: 10
   },
   notifiedContentText1: {
-    color: LIGHT_MODE.text,
     fontFamily: 'Nunito-SemiBold',
     fontSize: 15
   },
   notifiedContentText2: {
-    color: LIGHT_MODE.main,
     fontFamily: 'Nunito-Regular',
     fontSize: 12
   }

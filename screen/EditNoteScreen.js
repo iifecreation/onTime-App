@@ -6,11 +6,14 @@ import Pin from "../component/Pin"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Dustin from "../component/Dustin"
 import { LIGHT_MODE } from '../common/style'
+import { useTheme } from '../context/ThemeProvider'
+import { StatusBar } from 'expo-status-bar'
 
 const EditNoteScreen = ({ route, navigation }) => {
     const { note } = route.params;
     const [title, setTitle] = useState(note.title);
     const [desc, setDesc] = useState(note.desc);
+    const{theme} = useTheme()
 
     const updateNote = async () => {
         try {
@@ -36,30 +39,30 @@ const EditNoteScreen = ({ route, navigation }) => {
     };
 
   return (
-    <View style={styles.schedule}>
+    <View style={[styles.schedule, {backgroundColor: theme.light}]}>
         <View style={styles.scheduleContainer}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={{flexDirection: "row", gap: 10}} activeOpacity={0.7}>
-                <Arrow color={LIGHT_MODE.text} />
-                <Text style={styles.createScheuleText}>Edit Note</Text>
+                <Arrow color={theme.text}  />
+                <Text style={[styles.createScheuleText, {color: theme.text}]}>Edit Note</Text>
             </TouchableOpacity>
             <View style={styles.headerNav}>
                 <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteNote()} activeOpacity={0.7} >
-                    <Dustin color={LIGHT_MODE.text} />
+                    <Dustin color={theme.text} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => updateNote()} activeOpacity={0.7}>
-                    <Mark color={LIGHT_MODE.text} />
+                    <Mark color={theme.text} />
                 </TouchableOpacity>
             </View>
           </View>
             
           <ScrollView style={styles.createScheule}>
             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardAvoidingContainer}>
-                    <Text style={styles.noteCreateText}>Title</Text>
-                    <TextInput placeholder='Enter title....'  style={styles.noteCreateInput} placeholderTextColor="#fff" value={title} onChangeText={(text) => setTitle(text)}/>
-                    <Text style={[styles.noteCreateText, {marginTop: 20}]}>Description</Text>
+                    <Text style={[styles.noteCreateText, {color: theme.text}]}>Title</Text>
+                    <TextInput placeholder='Enter title....'  style={[styles.noteCreateInput, {borderColor: theme.text, color: theme.text}]} placeholderTextColor={theme.text} value={title} onChangeText={(text) => setTitle(text)}/>
+                    <Text style={[styles.noteCreateText, {marginTop: 20, color: theme.text}]}>Description</Text>
                     
-                    <TextInput placeholder='Enter title....' style={[styles.noteCreateInput, {paddingBottom: 20}]} value={desc}placeholderTextColor="#fff" multiline onChangeText={(text) => setDesc(text)}  />
+                    <TextInput placeholder='Enter title....' style={[styles.noteCreateInput, {paddingBottom: 20, borderColor: theme.text, color: theme.text}]} value={desc} placeholderTextColor={theme.text} multiline onChangeText={(text) => setDesc(text)}  />
               </KeyboardAvoidingView >
         
           </ScrollView>
@@ -74,7 +77,6 @@ export default EditNoteScreen
 
 const styles = StyleSheet.create({
   schedule: {
-      backgroundColor: LIGHT_MODE.light,
       flex: 1
   },
   scheduleContainer: {
@@ -97,22 +99,18 @@ const styles = StyleSheet.create({
       paddingBottom: 100
   },
   createScheuleText: {
-      color: LIGHT_MODE.text,
       fontFamily: 'Nunito-SemiBold',
       fontSize: 18
   },
   noteCreateText: {
-    color: "#ffffff",
     fontFamily: 'Nunito-SemiBold',
     fontSize: 14,
     marginBottom: 10
   },
   noteCreateInput: {
-    borderColor: "#fff",
     borderWidth: 2,
     paddingVertical: 5,
     paddingHorizontal: 10,
-    color: "#fff",
   },
   keyboardAvoidingContainer: {
     flex: 1,

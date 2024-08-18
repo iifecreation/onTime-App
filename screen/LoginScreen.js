@@ -3,17 +3,19 @@ import React from 'react'
 import Gradient from '../common/Gradient'
 import Logo from "../component/Logo"
 import { StatusBar } from 'expo-status-bar'
-import { LIGHT_MODE } from '../common/style'
+import { useTheme } from '../context/ThemeProvider' 
 
 const LoginScreen = ({navigation}) => {
+  const {theme} = useTheme()
+  
   return (
-    <View style={styles.onBoard}>
-      <StatusBar style={LIGHT_MODE.status} />
+    <View style={[styles.onBoard, {backgroundColor: theme.main}]}>
+      <StatusBar style={theme.status} />
         <View style={styles.onBoardLogo}>
-          <Logo />
-          <Text style={styles.onBoardLogoText}>Make yourself more on time</Text>
-          <TouchableOpacity style={styles.Logwarn} activeOpacity={0.6} onPress={() => navigation.navigate('Home')}>
-            <Text style={styles.LogwarnText}>start</Text>
+          <Logo color={theme.light} />
+          <Text style={[styles.onBoardLogoText, {color: theme.light}]}>Make yourself more on time</Text>
+          <TouchableOpacity style={[styles.Logwarn, {backgroundColor: theme.logo}]} activeOpacity={0.6} onPress={() => navigation.navigate('Home')}>
+            <Text style={[styles.LogwarnText, {color: theme.text}]}>start</Text>
           </TouchableOpacity>
         </View>
     </View>
@@ -25,7 +27,6 @@ export default LoginScreen
 const styles = StyleSheet.create({
   onBoard: {
     flex: 1,
-    backgroundColor: LIGHT_MODE.main
   },
   onBoardLogo: {
     flex: 1,
@@ -35,13 +36,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: "15%"
   },
   Logwarn: {
-    backgroundColor: "#ffffff",
     width: "100%",
     paddingVertical: 7,
     borderRadius: 12
   },
   LogwarnText: {
-    color: LIGHT_MODE.text,
     fontFamily: "Montserrat-Bold",
     fontSize: 24,
     textAlign: "center"

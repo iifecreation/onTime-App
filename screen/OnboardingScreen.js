@@ -3,9 +3,11 @@ import React, { useEffect } from 'react'
 import Gradient from '../common/Gradient'
 import Logo from "../component/Logo"
 import { StatusBar } from 'expo-status-bar'
-import { LIGHT_MODE } from '../common/style'
+import { useTheme } from '../context/ThemeProvider'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const OnboardingScreen = ({navigation}) => {
+  const{theme} = useTheme()
   useEffect(() => {
     const timer = setTimeout(() => {
       navigation.replace('Login'); 
@@ -15,10 +17,10 @@ const OnboardingScreen = ({navigation}) => {
   }, []);
 
   return (
-    <View style={styles.onBoard}>
-      <StatusBar style={LIGHT_MODE.status} />
+    <View style={[styles.onBoard, {backgroundColor: theme.main}]}>
+      <StatusBar style={theme.status} />
         <View style={styles.onBoardLogo}>
-          <Logo />
+          <Logo color={theme.logo} />
         </View>
     </View>
   )
@@ -29,7 +31,6 @@ export default OnboardingScreen
 const styles = StyleSheet.create({
     onBoard: {
       flex: 1,
-      backgroundColor: LIGHT_MODE.main
     },
     onBoardLogo: {
       flex: 1,

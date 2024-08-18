@@ -13,8 +13,9 @@ import MyCalendar from '../libs/MyCalendar'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment';
 import Dustin from "../component/Dustin"
+import Edit from "../component/Edit"
 import { LIGHT_MODE } from '../common/style'
-import SQLite from 'react-native-sqlite-storage';
+import { useTheme } from '../context/ThemeProvider'
 // import {CheckBox} from 'rn-inkpad';
 
 const HomeScreen = ({navigation}) => {
@@ -25,6 +26,7 @@ const HomeScreen = ({navigation}) => {
   const [noteData, setNoteData] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const {theme} = useTheme()
 
   // Function to group schedules by creation date
   const groupByCreationDate = useMemo(() =>  {
@@ -129,15 +131,18 @@ const HomeScreen = ({navigation}) => {
     const truncatedDesc = item.desc.split(' ').slice(0, 25).join(' ');
     return (
       <View style={styles.showNoteContentContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate('EditNote', { note: item })}>
+        <View >
           <Text style={styles.showNoteTexthead}>{item.title}</Text>
           <Text style={styles.showNoteTextDesc}>{truncatedDesc}...</Text>
-        </TouchableOpacity>
+        </View>
         <View style={styles.showNoteDateCon}>
           <Text style={styles.showNoteDate}>{new Date(item.dateCreated).toLocaleDateString()}</Text>
           <View style={{flexDirection: "row", gap: 10, alignItems: "center", justifyContent: "center"}}>
+            <TouchableOpacity onPress={() => navigation.navigate('EditNote', { note: item })}>
+              <Edit />
+            </TouchableOpacity>
             <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteNote(item.id)}>
-              <Dustin />
+              <Dustin color="#ffffff" />
             </TouchableOpacity>
           </View>
         </View>
@@ -160,11 +165,11 @@ const HomeScreen = ({navigation}) => {
 
   // Use filterScheduleData to get filtered schedule data
   const filteredScheduleData = filterScheduleData();
-  console.log(filteredScheduleData);
-  console.log(scheduleData);
+  // console.log(filteredScheduleData);
+  // console.log(scheduleData);
   return (
     <View style={styles.onBoard}>
-      <StatusBar style='dark' />
+      <StatusBar style={theme.status} />
       <Gradient>
         <View style={styles.onBoardLogo}>
 
@@ -203,17 +208,17 @@ const HomeScreen = ({navigation}) => {
           )}
 
           <View style={styles.headerBoard}>
-            <SmallLogo color="#403B36" />
+            <SmallLogo color={theme.text} />
 
             <View style={styles.notified}>
                 <TouchableOpacity onPress={() => navigation.navigate("Notified")}>
-                  <Notification color="#403B36" />
+                  <Notification color={theme.text} />
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.circleContainer} onPress={() => navigation.navigate("Setting")}>
-                  <View style={styles.circle}></View>
-                  <View style={styles.circle}></View>
-                  <View style={styles.circle}></View>
+                  <View style={[styles.circle, {backgroundColor: theme.text}]}></View>
+                  <View style={[styles.circle, {backgroundColor: theme.text}]}></View>
+                  <View style={[styles.circle, {backgroundColor: theme.text}]}></View>
                 </TouchableOpacity>
             </View>
           </View>
@@ -360,10 +365,9 @@ const styles = StyleSheet.create({
     gap: 5
   },
   circle: {
-    width: 5,
-    height: 5,
+    width: 7,
+    height: 7,
     borderRadius: 50,
-    backgroundColor: "#403B36"
   },
   notified: {
     flexDirection: "row",
