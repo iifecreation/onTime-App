@@ -1,27 +1,11 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { LIGHT_MODE, DARK_MODE } from "../common/style";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getDBConnection, createTable, getScheduleData } from "../database/db-service";
-
 
 const themeContext = createContext(LIGHT_MODE)
 
 const ThemeProvider = ({children}) => {
     const[theme, setTheme] = useState(LIGHT_MODE)
-
-    const loadDataCallback = useCallback( async () => {
-        try {
-            const db = await getDBConnection();
-            await createTable(db)
-
-            // const schedule = await getScheduleData(db)
-
-            // console.log(schedule);
-            
-        } catch (error) {
-            console.error(error);
-        }
-    }, []) 
 
     useEffect(() => {
 
@@ -38,7 +22,6 @@ const ThemeProvider = ({children}) => {
         }
 
         loadTheme()
-        loadDataCallback()
 
     }, [])
 
@@ -54,7 +37,7 @@ const ThemeProvider = ({children}) => {
     }
     return(
         <themeContext.Provider value={{theme, toggleTheme}}>
-            {children}
+            {children}      
         </themeContext.Provider>
     )
 }

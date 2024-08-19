@@ -8,9 +8,12 @@ import moment from 'moment';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeProvider'
-import { getDBConnection, saveScheduleData } from '../database/db-service'
+import {saveScheduleData } from '../database/db-service'
+import { useSQLiteContext } from 'expo-sqlite'
+
 
 const ScheduleScreen = () => {
+    const db = useSQLiteContext();
     const currentDate = new Date();
     const navigation = useNavigation();
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -26,9 +29,6 @@ const ScheduleScreen = () => {
     const [selectedRepeatOption, setSelectedRepeatOption] = useState('One time');
     const [selectedReminderOption, setSelectedReminderOption] = useState('Before 5 minutes');
     const{theme} = useTheme()
-
-
-    
 
     const toggleSwitch = () => setFullDay(previousState => !previousState);
 
@@ -108,7 +108,6 @@ const ScheduleScreen = () => {
 
     const saveSchedule = async () => {
         try {
-            let db = await getDBConnection()
             const newSchedule = {
                 title,
                 note,
@@ -121,9 +120,9 @@ const ScheduleScreen = () => {
                 createdAt: Date.now()
             };
             
-            await saveScheduleData(db, newSchedule);
+            let data = await saveScheduleData(db, newSchedule);
             
-            console.log('Schedule data saved successfully!');
+            console.log('Schedule data saved successfully!', data);
             // navigation.navigate("Home")
         } catch (error) {
             console.error('Error saving schedule data:', error);
@@ -204,7 +203,7 @@ const ScheduleScreen = () => {
                         </View>
 
                         <View style={styles.scheduleInput}>
-                            <Text>Enter place </Text>
+                            <Text>Enter note </Text>
                             <TextInput placeholder='Note...' style={[styles.createScheuleInput, {backgroundColor:theme.text, color: theme.light}]} multiline onChangeText={(text) => setNote(text)} placeholderTextColor={theme.light}/>
                         </View>
                     </View>
@@ -317,7 +316,8 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontFamily: 'Nunito-Regular',
         paddingHorizontal: 10,
-        marginBottom: 25
+        marginBottom: 25,
+        width: "100%"
     },
     createScheuleFull: {
         flexDirection: "row",
