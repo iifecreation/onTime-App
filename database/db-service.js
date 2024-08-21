@@ -17,14 +17,14 @@ export const initializeDatabase = async (db) => {
                 reminder TEXT NOT NULL,
                 place TEXT NOT NULL,
                 note TEXT NOT NULL,
-                completed BOOLEAN DEFAULT 0,
+                completed BOOLEAN,
                 createdAt TEXT NOT NULL
             );
             CREATE TABLE IF NOT EXISTS Note(
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 title TEXT NOT NULL,
                 desc TEXT NOT NULL,
-                completed BOOLEAN DEFAULT 0,
+                completed BOOLEAN,
                 createdAt TEXT NOT NULL
             );`,
         )
@@ -39,8 +39,8 @@ export const initializeDatabase = async (db) => {
 //***** UPDATE Schedule data
 export const saveScheduleData = async (db, schedule) => {
     try {
-        const insertQuery = `INSERT INTO Schedule (title, fullday, start, finish, repeat, reminder, place, note, createdAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const insertQuery = `INSERT INTO Schedule (title, fullday, start, finish, repeat, reminder, place, note, completed, createdAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         
         const statement = await db.prepareAsync(insertQuery)
         console.log(statement);
@@ -54,6 +54,7 @@ export const saveScheduleData = async (db, schedule) => {
             schedule.reminder,
             schedule.place,
             schedule.note,
+            schedule.completed ? 1 : 0,
             schedule.createdAt
         ])
 
@@ -69,7 +70,7 @@ export const saveScheduleData = async (db, schedule) => {
 //***** UPDATE Note data
 export const saveNoteData = async (db, note) => {
     try {
-        const insertQuery = `INSERT INTO Note (title, desc, createdAt)
+        const insertQuery = `INSERT INTO Note (title, desc, completed, createdAt)
             VALUES (?, ?, ?)`;
         
         const statement = await db.prepareAsync(insertQuery)
@@ -78,6 +79,7 @@ export const saveNoteData = async (db, note) => {
         await statement.executeAsync([
             note.title,
             note.desc,
+            note.completed,
             note.createdAt
         ])
 

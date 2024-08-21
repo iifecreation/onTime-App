@@ -117,13 +117,14 @@ const ScheduleScreen = () => {
                 finish: finishDate ? finishDate.toString() : finishDate,
                 repeat : selectedRepeatOption,
                 reminder: selectedReminderOption,
+                completed: false,
                 createdAt: Date.now()
             };
             
             let data = await saveScheduleData(db, newSchedule);
             
             console.log('Schedule data saved successfully!', data);
-            // navigation.navigate("Home")
+            navigation.navigate("Home")
         } catch (error) {
             console.error('Error saving schedule data:', error);
         }

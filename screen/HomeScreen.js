@@ -1,46 +1,43 @@
 import { FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
-import Gradient from '../common/Gradient'
-import SmallLogo from "../component/SmallLogo"
-import Notification from "../component/Notification"
-import Plus from "../component/Plus"
-import Search from "../component/Search"
-import Cross from "../component/Cross"
-import Schedule from "../component/Schedule"
-import Note from "../component/Note"
-import MyCalendar from '../libs/MyCalendar'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import moment from 'moment';
-import Dustin from "../component/Dustin"
-import Edit from "../component/Edit"
+import moment from 'moment'
 import { LIGHT_MODE } from '../common/style'
 import { useTheme } from '../context/ThemeProvider'
+import { getNoteData, getScheduleData } from '../database/db-service'
+import { useSQLiteContext } from 'expo-sqlite'
+import { showScheduleData } from '../libs/showScheduleData'
+import {Plus, SmallLogo, Search, Cross, Notification, Gradient, MyCalendar, Edit, Dustin, Schedule, Note} from "../libs/exportData"
+
 // import {CheckBox} from 'rn-inkpad';
 
 const HomeScreen = ({navigation}) => {
+  const db = useSQLiteContext();
   const[schedule, setSchedule] = useState(true)
   const[note, setNote] = useState(false)
   const[plus, setPlus] = useState(false)
   const [scheduleData, setScheduleData] = useState([]);
+  const [filteredSchedule, setFilteredSchedule] = useState([]);
   const [noteData, setNoteData] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const {theme} = useTheme()
 
   // Function to group schedules by creation date
-  const groupByCreationDate = useMemo(() =>  {
+  const groupByCreationDate = useMemo((data) =>  {
     return (data) => {
       const groupedData = {};
       data.forEach(schedule => {
-          const creationDate = moment(schedule.id).format('YYYY-MM-DD');
-          if (groupedData[creationDate]) {
-              groupedData[creationDate].push(schedule);
-          } else {
-              groupedData[creationDate] = [schedule];
-          }
-      });
-      return groupedData;
+        const creationDate = moment( Number(schedule.createdAt)).format('DD-MM-YYYY')
+        if(groupedData[creationDate]){
+          groupedData[creationDate].push(JSON.stringify(schedule))
+        }else{
+          groupedData[creationDate] = [JSON.stringify(schedule)]
+        }
+      })
+
+      return groupedData     
     };
   })
 
@@ -67,13 +64,13 @@ const HomeScreen = ({navigation}) => {
   useEffect(() => {
     const fetchScheduleData = async () => {
         try {
-            const jsonValue = await AsyncStorage.getItem('scheduleData');
-            if (jsonValue !== null) {
-                const data = JSON.parse(jsonValue);
-                // Group schedules by creation date
-                const groupedData = groupByCreationDate(data);
-                setScheduleData(groupedData);
-            }
+          const scheduleData = await getScheduleData(db)
+
+          const groupedData = groupByCreationDate(scheduleData)
+
+          setScheduleData(groupedData)
+          setFilteredSchedule(groupedData)
+                       
         } catch (error) {
             console.error('Error retrieving schedule data:', error);
         }
@@ -81,11 +78,8 @@ const HomeScreen = ({navigation}) => {
 
     const fetchNotes = async () => {
       try {
-        const data = await AsyncStorage.getItem('noteData');
-        if (data) {
-          const parsedData = JSON.parse(data).reverse()
-          setNoteData(parsedData);
-        }
+        const noteData = await getNoteData(db)
+        setNoteData(noteData)
       } catch (error) {
         console.error('Error fetching notes:', error);
       }
@@ -93,7 +87,7 @@ const HomeScreen = ({navigation}) => {
 
     fetchNotes();
     fetchScheduleData();
-  }, [deleteSchedule]);
+  }, []);
 
   const showSchedule = () => {
     setNote(false)
@@ -151,22 +145,37 @@ const HomeScreen = ({navigation}) => {
   }
 
   // Function to filter schedule data based on selected date
-  const filterScheduleData = useCallback(() => {
-    if (!selectedDate) {
-      return scheduleData; // If no date is selected, return all schedule data
+  const filterScheduleData = useCallback((date) => {
+    if(date){
+      const formattedDate = moment(date).format('DD-MM-YYYY');
+      const groupedData = {};
+      for (const element in scheduleData) {
+        if(formattedDate === element){
+          groupedData[element] = scheduleData[element]
+          setFilteredSchedule(groupedData);
+          break;
+        }else{
+          console.log("hello");
+          
+        }
+      }
+    }else{
+      setFilteredSchedule(scheduleData)
     }
-    return scheduleData[selectedDate] || []; // Return schedule data for selected date
-  }, [scheduleData, selectedDate]);
+    
+  }, []);
 
   // Callback function to handle date selection from calendar
   const handleDateSelect = useCallback(async (date) => {
     setSelectedDate(date);
+    filterScheduleData(date)
   }, []);
 
-  // Use filterScheduleData to get filtered schedule data
-  const filteredScheduleData = filterScheduleData();
-  // console.log(filteredScheduleData);
-  // console.log(scheduleData);
+  const sections = Object.keys(filteredSchedule).map(date => ({
+    title: date,
+    data: filteredSchedule[date]
+  }));
+  
   return (
     <View style={styles.onBoard}>
       <StatusBar style={theme.status} />
@@ -236,62 +245,19 @@ const HomeScreen = ({navigation}) => {
           </View>
 
           {schedule && (
-            <ScrollView style={styles.scheduleContainer}>
+            <ScrollView style={styles.scheduleContainer} showsVerticalScrollIndicator={false}>
               <MyCalendar onDateSelect={handleDateSelect} />
 
               <Text style={styles.scheduleText}>Schedule</Text>
 
               <View style={styles.schedulesCont}>
-                {/* Render filteredScheduleData instead of scheduleData */}
                 
-                {filteredScheduleData && Object.keys(filteredScheduleData).length > 0 ? (
-                  Object.entries(filteredScheduleData).map(([date, schedules]) => (
-                    <View key={date} style={styles.scheduleData}>
-                      <View style={styles.scheduleDataDate}>
-                        <View style={styles.scheduleDataText}>
-                          <Text style={styles.scheduleDataTextInside}>{moment(date).format('D')}</Text>
-                        </View>
-                        <View style={styles.scheduleDataLine}></View>
-                      </View>
-                      <View style={styles.returnScheduleData}>
-                        {schedules.map(schedule =>  { (
-                          <View key={schedule.id} style={styles.returnSchedule}>
-                            <View style={styles.returnScheduleHeader}>
-                              <Text style={styles.returnScheduleHeaderText}>{schedule.title}</Text>
-                              <View style={styles.returnScheduleHeaderIcon}>
-                                {/* <CheckBox iconColor='#fff' iconSize={17} textStyle={{display: "none"}} /> */}
-                                <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteSchedule(schedule.id)}>
-                                  <Dustin />
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-
-                            <TouchableOpacity onPress={() => navigation.navigate('EditSchedule', { schedule: schedule })}>
-                              <View style={styles.returnScheduleContent}>
-                                <Text style={styles.returnScheduleContentText}>Date:</Text>
-                                <Text style={styles.returnScheduleContentText1}>{moment(schedule.selectedDate).format("D/MM/YYYY")} - {moment(schedule.finishDate).format("D/MM/YYYY")}</Text>
-                              </View>
-
-                              <View style={styles.returnScheduleContent}>
-                                <Text style={styles.returnScheduleContentText}>Time:</Text>
-                                <Text style={styles.returnScheduleContentText1}>{moment(schedule.selectedDate).format("hh.mm a")} - {moment(schedule.finishDate).format("hh.mm a")}</Text>
-                              </View>
-
-                              <View style={styles.returnScheduleContent}>
-                                <Text style={styles.returnScheduleContentText}>Place:</Text>
-                                <Text style={styles.returnScheduleContentText1}>{schedule.place}</Text>
-                              </View>
-
-                              <View style={styles.returnScheduleContent}>
-                                <Text style={styles.returnScheduleContentText}>Notes:</Text>
-                                <Text style={styles.returnScheduleContentText1}>{schedule.note}</Text>
-                              </View>
-                            </TouchableOpacity>
-                          </View>
-                        )})}
-                      </View>
-                    </View>
-                  ))
+                {filteredSchedule.length !== "" ? (
+                  sections.map((item, index) => {
+                    return (
+                      showScheduleData(item, index)
+                    )
+                  } )
                   ) : (
                     <View style={styles.schedulesNoTextWrapper}>
                       <Text style={styles.schedulesNoText}>No schedules for selected date.</Text>
@@ -330,7 +296,6 @@ const HomeScreen = ({navigation}) => {
                       />
                     )
                   }
-                  
                 </View>
               </View>
               

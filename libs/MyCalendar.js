@@ -8,7 +8,6 @@ const MyCalendar = ({ onDateSelect }) => {
   
   const handleDateSelect = (date) => {
     // Call the callback function with the selected date
-    console.log(date.dateString);
     onDateSelect(date.dateString);
   };
   return (
