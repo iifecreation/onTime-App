@@ -10,8 +10,6 @@ import { useSQLiteContext } from 'expo-sqlite'
 import { showScheduleData } from '../libs/showScheduleData'
 import {Plus, SmallLogo, Search, Cross, Notification, Gradient, MyCalendar, Edit, Dustin, Schedule, Note} from "../libs/exportData"
 
-// import {CheckBox} from 'rn-inkpad';
-
 const HomeScreen = ({navigation}) => {
   const db = useSQLiteContext();
   const[schedule, setSchedule] = useState(true)
@@ -40,26 +38,6 @@ const HomeScreen = ({navigation}) => {
       return groupedData     
     };
   })
-
-  const deleteSchedule = useCallback(async (scheduleId) => {
-    try {
-        // Retrieve the schedule data from AsyncStorage
-        const jsonValue = await AsyncStorage.getItem('scheduleData');
-        if (jsonValue !== null) {
-            // Parse the JSON data
-            const data = JSON.parse(jsonValue);
-            // Filter out the schedule to be deleted
-            const newData = data.filter(schedule => schedule.id !== scheduleId);
-            // Save the updated schedule data to AsyncStorage
-            await AsyncStorage.setItem('scheduleData', JSON.stringify(newData));
-            // Update the state to reflect the changes
-            const groupedData = groupByCreationDate(newData);
-            setScheduleData(groupedData);
-        }
-    } catch (error) {
-        console.error('Error deleting schedule:', error);
-    }
-}, [scheduleData]);
 
   useEffect(() => {
     const fetchScheduleData = async () => {
@@ -175,41 +153,40 @@ const HomeScreen = ({navigation}) => {
     title: date,
     data: filteredSchedule[date]
   }));
-  
+
   return (
     <View style={styles.onBoard}>
       <StatusBar style={theme.status} />
       <Gradient>
         <View style={styles.onBoardLogo}>
-
           <View style={styles.plusIconWrap}>
             <TouchableOpacity  onPress={() => changePlus()} activeOpacity={0.8}>
-              {plus || <View style={styles.plusIconWrapCon}>
-                <Plus />
+              {plus || <View style={[styles.plusIconWrapCon, {backgroundColor: theme.text}]}>
+                <Plus color={theme.light} />
                 </View>}
             </TouchableOpacity>
           </View>
 
        
           {plus && (
-            <View style={styles.showMoreOptions}>
+            <View style={[styles.showMoreOptions, {backgroundColor: theme.light}]}>
               <View style={styles.plusIconThrid}>
                 <View style={[styles.showMoreOptionsCon, {alignSelf: "flex-end"}]}>
-                  <Text style={styles.showMoreOptionsText}>Note</Text>
-                  <TouchableOpacity style={styles.plusIconWrapCon} onPress={() => {navigation.navigate("Note"); changePlusBack()}} activeOpacity={0.8}>
-                    <Note />
+                  <Text style={[styles.showMoreOptionsText, {color: theme.text}]}>Note</Text>
+                  <TouchableOpacity style={[styles.plusIconWrapCon, {backgroundColor: theme.text}]} onPress={() => {navigation.navigate("Note"); changePlusBack()}} activeOpacity={0.8}>
+                    <Note color={theme.light} />
                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.showMoreOptionsCon}>
-                  <Text style={styles.showMoreOptionsText}>Schedule</Text>
-                  <TouchableOpacity style={styles.plusIconWrapCon} onPress={() => {navigation.navigate("Schedule"); changePlusBack()}} activeOpacity={0.8}>
-                    <Schedule />
+                  <Text style={[styles.showMoreOptionsText, {color: theme.text}]}>Schedule</Text>
+                  <TouchableOpacity style={[styles.plusIconWrapCon, {backgroundColor: theme.text}]} onPress={() => {navigation.navigate("Schedule"); changePlusBack()}} activeOpacity={0.8}>
+                    <Schedule color={theme.light} />
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity style={[styles.plusIconWrapCon, {alignSelf: "flex-end"}]} onPress={() => changePlusBack()} activeOpacity={0.8}>
-                  <Cross />
+                <TouchableOpacity style={[styles.plusIconWrapCon, {backgroundColor: theme.text, alignSelf: "flex-end"}]} onPress={() => changePlusBack()} activeOpacity={0.8}>
+                  <Cross color={theme.light} />
                 </TouchableOpacity>
                 
               </View>
@@ -248,19 +225,19 @@ const HomeScreen = ({navigation}) => {
             <ScrollView style={styles.scheduleContainer} showsVerticalScrollIndicator={false}>
               <MyCalendar onDateSelect={handleDateSelect} />
 
-              <Text style={styles.scheduleText}>Schedule</Text>
+              <Text style={[styles.scheduleText, {color: theme.text}]}>Schedule</Text>
 
               <View style={styles.schedulesCont}>
                 
-                {filteredSchedule.length !== "" ? (
+                {Object.keys(filteredSchedule).length > 0  ? (
                   sections.map((item, index) => {
                     return (
-                      showScheduleData(item, index)
+                      showScheduleData(item, index, navigation)
                     )
                   } )
                   ) : (
                     <View style={styles.schedulesNoTextWrapper}>
-                      <Text style={styles.schedulesNoText}>No schedules for selected date.</Text>
+                      <Text style={[styles.schedulesNoText, {color: theme.text}]}>No schedules for selected date.</Text>
                     </View>
                 )}
               </View>
@@ -365,7 +342,6 @@ const styles = StyleSheet.create({
   scheduleText: {
     fontFamily: 'Nunito-Bold',
     fontSize: 16,
-    color: "#ffffff",
     marginTop: 95
   },
   schedulesNoTextWrapper: {
@@ -392,7 +368,6 @@ const styles = StyleSheet.create({
     zIndex: 5
   },
   plusIconWrapCon: {
-    backgroundColor: LIGHT_MODE.text,
     borderRadius: 50,
     padding: 15,
     width: 50,
@@ -450,7 +425,6 @@ const styles = StyleSheet.create({
   },
   showMoreOptions: {
     position: "absolute",
-    backgroundColor: LIGHT_MODE.light,
     left: 0,
     right: 0,
     bottom: 0,
@@ -467,7 +441,6 @@ const styles = StyleSheet.create({
     alignItems: "center"
   },
   showMoreOptionsText: {
-    color: LIGHT_MODE.text,
     fontFamily: 'Nunito-SemiBold',
     fontSize: 14
   },

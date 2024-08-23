@@ -1,38 +1,33 @@
-import { Modal, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View, Dimensions, KeyboardAvoidingView, Platform } from 'react-native'
+import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View, Dimensions, KeyboardAvoidingView } from 'react-native'
 import React, { useState } from 'react'
-import Arrow from "../component/Arrow"
-import Mark from "../component/Mark"
-import Dustin from "../component/Dustin"
-import SmallArrow from "../component/SmallArrow"
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-// import {CheckBox} from 'rn-inkpad';
+import {Dustin, Mark, CheckBox, SmallArrow, Arrow} from "../libs/exportData"
+import { useTheme } from '../context/ThemeProvider';
+import { useSQLiteContext } from 'expo-sqlite'
+import { deleteScheduleData, updateSchedule } from '../database/db-service';
 
 const EditScheduleScreen = () => {
 
     const route = useRoute();
     const { schedule } = route.params;
-
+    const{theme} = useTheme()
+    let data = schedule
+    const db = useSQLiteContext();
     const navigation = useNavigation();
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [isDatePickerFinishVisible, setDatePickerFinishVisibility] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(null);
-    const [finishDate, setFinishDate] = useState(null);
-    const[title, setTitle] = useState(schedule.title)
-    const[note, setNote] = useState(schedule.note)
-    const[place, setPlace] = useState(schedule.place)
-    const[fullday, setFullDay] = useState(schedule.fullday)
+    const [selectedDate, setSelectedDate] = useState(data.start);
+    const [finishDate, setFinishDate] = useState(data.finish);
+    const[title, setTitle] = useState(data.title)
+    const[note, setNote] = useState(data.note)
+    const[place, setPlace] = useState(data.place)
     const [isRepeatModalVisible, setRepeatModalVisible] = useState(false);
     const [isReminderModalVisible, setReminderModalVisible] = useState(false);
-    const [selectedRepeatOption, setSelectedRepeatOption] = useState(schedule.selectedRepeatOption);
-    const [selectedReminderOption, setSelectedReminderOption] = useState(schedule.selectedReminderOption);
-
-
-    const currentDate = new Date();
-
-    const toggleSwitch = () => setFullDay(previousState => !previousState);
+    const [selectedRepeat, setSelectedRepeat] = useState(data.repeat);
+    const [selectedReminder, setSelectedReminder] = useState(data.reminder);
+    const[isChecked, setisChecked] = useState(data.completed == 0 ? false : true)
 
     const showDatePicker = () => {
         setDatePickerVisibility(true);
@@ -69,46 +64,31 @@ const EditScheduleScreen = () => {
     };
 
     const handleRepeatOptionSelect = (option) => {
-        setSelectedRepeatOption(option);
+        setSelectedRepeat(option);
         setRepeatModalVisible(false);
     };
 
     const handleReminderOptionSelect = (option) => {
-        setSelectedReminderOption(option);
+        setSelectedReminder(option);
         setReminderModalVisible(false);
     };
 
     // Function to save the edited schedule
     const saveEditedSchedule = async () => {
         try {
-            // Retrieve existing schedules from AsyncStorage
-            let schedules = [];
-            const existingSchedule = await AsyncStorage.getItem('scheduleData');
-            if (existingSchedule) {
-                schedules = JSON.parse(existingSchedule);
-            }
-
-            // Update the schedule with edited data
-            const updatedSchedule = {
-                id: schedule.id,
+            const newSchedule = {
                 title,
                 note,
                 place,
-                fullday,
-                selectedDate: selectedDate ? selectedDate.toString() : null,
-                finishDate: finishDate ? finishDate.toString() : null,
-                selectedRepeatOption: schedule.selectedRepeatOption,
-                selectedReminderOption: schedule.selectedReminderOption
+                start: selectedDate ? selectedDate.toString() : selectedDate,
+                finish: finishDate ? finishDate.toString() : finishDate,
+                repeat : selectedRepeat,
+                reminder: selectedReminder,
+                completed: isChecked,
+                createdAt: Date.now()
             };
-
-            // Find and replace the old schedule with the updated one
-            const index = schedules.findIndex(s => s.id === schedule.id);
-            if (index !== -1) {
-                schedules[index] = updatedSchedule;
-            }
-
-            // Save the updated schedules back to AsyncStorage
-            await AsyncStorage.setItem('scheduleData', JSON.stringify(schedules));
+            await updateSchedule(db, data.id, newSchedule )
+              
             console.log('Schedule data updated successfully!');
             navigation.goBack();
         } catch (error) {
@@ -119,17 +99,7 @@ const EditScheduleScreen = () => {
     // Function to delete the schedule
     const deleteSchedule = async () => {
         try {
-            // Retrieve existing schedules from AsyncStorage
-            let schedules = [];
-            const existingSchedule = await AsyncStorage.getItem('scheduleData');
-            if (existingSchedule) {
-                schedules = JSON.parse(existingSchedule);
-            }
-            // Remove the schedule from the array
-            const updatedSchedules = schedules.filter(s => s.id !== schedule.id);
-
-            // Save the updated schedules back to AsyncStorage
-            await AsyncStorage.setItem('scheduleData', JSON.stringify(updatedSchedules));
+            await deleteScheduleData(db, data.id)
             console.log('Schedule deleted successfully!');
             navigation.goBack();
         } catch (error) {
@@ -139,35 +109,35 @@ const EditScheduleScreen = () => {
 
 
   return (
-    <View style={styles.schedule}>
+    <View style={[styles.schedule, {backgroundColor: theme.light}]}>
         <View style={styles.scheduleContainer}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Arrow />
+                    <Arrow color={theme.text} />
                 </TouchableOpacity>
                 <View style={styles.headerNav}>
-                    {/* <CheckBox iconColor='#fff' textStyle={{display: "none"}} /> */}
+                    <CheckBox 
+                        isChecked={isChecked} 
+                        onPress={() => setisChecked(!isChecked)}
+                        text={theme.text == "#403B36" ? "#403B36" : "#F8EEE2"}
+                    />
                     <TouchableOpacity style={{width: 20, height: 20}} onPress={() => deleteSchedule()}>
-                        <Dustin />
+                        <Dustin color={theme.text} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => saveEditedSchedule()}>
-                        <Mark />
+                        <Mark color={theme.text} />
                     </TouchableOpacity>
                 </View>
 
             </View>
-                <View style={styles.createScheule}>
-                    <Text style={styles.createScheuleText}>Schedule</Text>
-                    <TextInput style={styles.createScheuleInput} placeholder='Enter Title' value={title} onChangeText={(text) => setTitle(text)} />
 
-                    <View style={styles.createScheuleFull}>
-                        <Text style={styles.createScheuleFullText}>Fullday</Text>
-                        <Switch value={fullday} onValueChange={toggleSwitch} />
-                    </View>
+            <View style={styles.createScheule}>
+                <Text style={[styles.createScheuleFullText, {color: theme.text, paddingBottom: 7}]}>Enter Schedule</Text>
+                <TextInput style={[styles.createScheuleInput, {borderColor: theme.text, color: theme.text}]} placeholder='Enter Title' value={title} onChangeText={(text) => setTitle(text)} />
 
                 <View style={styles.createScheulePla}>
                         <View style={styles.createScheuleFull}>
-                            <Text style={styles.createScheuleFullText}>Start from</Text>
+                            <Text style={[styles.createScheuleFullText, {color: theme.text}]}>Start from</Text>
                             <TouchableOpacity style={styles.createScheuleSecon} onPress={showDatePicker}>
                                 <Text style={styles.createScheuleSeconText}>{selectedDate
                                     ? `${moment(selectedDate).format('MMMM, Do YYYY hh:mm A')}`
@@ -177,11 +147,9 @@ const EditScheduleScreen = () => {
                                 <SmallArrow />
                             </TouchableOpacity>
                         </View>
-
-                        
-
+                      
                         <View style={styles.createScheuleFull}>
-                            <Text style={styles.createScheuleFullText}>Finish</Text>
+                            <Text style={[styles.createScheuleFullText, {color: theme.text}]}>Finish</Text>
                             <TouchableOpacity style={styles.createScheuleSecon} onPress={showDateFinishPicker}>
                                 <Text style={styles.createScheuleSeconText}>{finishDate
                                     ? `${moment(finishDate).format('MMMM, Do YYYY hh:mm A')}`
@@ -193,29 +161,31 @@ const EditScheduleScreen = () => {
                         
 
                         <View style={styles.createScheuleFull}>
-                            <Text style={styles.createScheuleFullText}>Repeat</Text>
+                            <Text style={[styles.createScheuleFullText, {color: theme.text}]}>Repeat</Text>
                             <TouchableOpacity style={styles.createScheuleSecon} onPress={() => toggleRepeatModal()}>
-                                <Text style={styles.createScheuleSeconText}>{selectedRepeatOption}</Text>
+                                <Text style={styles.createScheuleSeconText}>{selectedRepeat}</Text>
                                 <SmallArrow />
                             </TouchableOpacity>
                         </View>
                                     
                         {/* reminder section start */}
                         <View style={styles.createScheuleFull}>
-                            <Text style={styles.createScheuleFullText}>Reminder</Text>
+                            <Text style={[styles.createScheuleFullText, {color: theme.text}]}>Reminder</Text>
                             <TouchableOpacity style={styles.createScheuleSecon} onPress={() => toggleReminderModal()}>
-                                <Text style={styles.createScheuleSeconText}>{selectedReminderOption}</Text>
+                                <Text style={styles.createScheuleSeconText}>{selectedReminder}</Text>
                                 <SmallArrow />
                             </TouchableOpacity>
                         </View>
                         {/* reminder section end */}
 
                         <View style={styles.scheduleInput}>
-                            <TextInput placeholder='Place...' style={[styles.createScheuleInput, {marginBottom: 0}]} value={place} onChangeText={(text) => setPlace(text)} />
+                            <Text style={[styles.createScheuleFullText, {color: theme.text, paddingBottom: 7}]}>Enter Place of task </Text>
+                            <TextInput placeholder='Place...' style={[styles.createScheuleInput, {borderColor: theme.text, color: theme.text}]} value={place} onChangeText={(text) => setPlace(text)} />
                         </View>
 
                         <View style={styles.scheduleInput}>
-                            <TextInput placeholder='Note...' style={styles.createScheuleInput} multiline value={note} onChangeText={(text) => setNote(text)}/>
+                            <Text style={[styles.createScheuleFullText, {color: theme.text, paddingBottom: 7}]}>Enter description </Text>
+                            <TextInput placeholder='Note...' style={[styles.createScheuleInput, {borderColor: theme.text, color: theme.text}]} multiline value={note} onChangeText={(text) => setNote(text)}/>
                         </View>
                 </View>
 
@@ -298,7 +268,6 @@ const modalHeight = 200;
 
 const styles = StyleSheet.create({
     schedule: {
-        backgroundColor: "#282530",
         flex: 1
     },
     scheduleContainer: {
@@ -312,26 +281,25 @@ const styles = StyleSheet.create({
     },
     headerNav: {
         flexDirection: "row",
-        gap: 20,
+        gap: 12,
         alignItems: "center"
     },
     createScheule: {
         paddingTop: 30
     },
     createScheuleText: {
-        color: "#ffffff",
-        fontFamily: 'Nunito-SemiBold',
+        fontFamily: 'Nunito-Bold',
         fontSize: 16,
         marginBottom: 20
     },
     createScheuleInput: {
-        backgroundColor: "#ffffff",
+        width: "100%",
+        borderWidth: 1,
         borderRadius: 10,
-        paddingVertical: 7,
-        fontSize: 16,
+        paddingVertical: 5,
+        fontSize: 14,
         fontFamily: 'Nunito-Regular',
         paddingHorizontal: 10,
-        marginBottom: 25
     },
     createScheuleFull: {
         flexDirection: "row",
@@ -339,9 +307,9 @@ const styles = StyleSheet.create({
         justifyContent: "space-between"
     },
     createScheuleFullText: {
-        fontSize: 16,
-        fontFamily: 'Nunito-Regular',
-        color: "#ffffff",
+        fontSize: 15,
+        fontFamily: 'Nunito-SemiBold',
+        textTransform: "capitalize"
     },
     createScheuleSecon: {
         flexDirection: "row",
@@ -354,13 +322,14 @@ const styles = StyleSheet.create({
         fontFamily: 'Nunito-Regular',
     },
     createScheulePla: {
-        gap: 17
+        gap: 17,
+        marginTop: 14
     },
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Adjust transparency as needed
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
         backgroundColor: '#ffffff',
@@ -368,7 +337,7 @@ const styles = StyleSheet.create({
         padding: 20,
         width: modalWidth,
         maxHeight: modalHeight,
-        overflow: 'hidden', // Ensure content does not overflow modal dimensions
+        overflow: 'hidden',
     },
     modalTitle: {
         fontSize: 18,

@@ -6,7 +6,6 @@ import SmallArrow from "../component/SmallArrow"
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeProvider'
 import {saveScheduleData } from '../database/db-service'
 import { useSQLiteContext } from 'expo-sqlite'
@@ -23,14 +22,11 @@ const ScheduleScreen = () => {
     const[title, setTitle] = useState('')
     const[note, setNote] = useState('')
     const[place, setPlace] = useState('')
-    const[fullday, setFullDay] = useState(false)
     const [isRepeatModalVisible, setRepeatModalVisible] = useState(false);
     const [isReminderModalVisible, setReminderModalVisible] = useState(false);
     const [selectedRepeatOption, setSelectedRepeatOption] = useState('One time');
     const [selectedReminderOption, setSelectedReminderOption] = useState('Before 5 minutes');
     const{theme} = useTheme()
-
-    const toggleSwitch = () => setFullDay(previousState => !previousState);
 
     const showDatePicker = () => {
         setDatePickerVisibility(true);
@@ -76,43 +72,12 @@ const ScheduleScreen = () => {
         setReminderModalVisible(false);
     };
 
-    // Function to save the schedule data
-    // const saveSchedule = async () => {
-    //     try {
-    //         let schedules = [];
-    //         const existingSchedule = await AsyncStorage.getItem('scheduleData');
-    //         if (existingSchedule) {
-    //             schedules = JSON.parse(existingSchedule);
-    //         }
-    
-    //         const newSchedule = {
-    //             id: Date.now(),
-    //             title,
-    //             note,
-    //             place,
-    //             fullday,
-    //             selectedDate: selectedDate ? selectedDate.toString() : null,
-    //             finishDate: finishDate ? finishDate.toString() : null,
-    //             selectedRepeatOption,
-    //             selectedReminderOption
-    //         };
-    
-    //         schedules.push(newSchedule);
-    //         await AsyncStorage.setItem('scheduleData', JSON.stringify(schedules));
-    //         console.log('Schedule data saved successfully!');
-    //         navigation.navigate("Home")
-    //     } catch (error) {
-    //         console.error('Error saving schedule data:', error);
-    //     }
-    // };
-
     const saveSchedule = async () => {
         try {
             const newSchedule = {
                 title,
                 note,
                 place,
-                fullday,
                 start: selectedDate ? selectedDate.toString() : selectedDate,
                 finish: finishDate ? finishDate.toString() : finishDate,
                 repeat : selectedRepeatOption,
@@ -145,14 +110,10 @@ const ScheduleScreen = () => {
                 </View>
 
             </View>
-                <View style={styles.createScheule}>
-                    <Text style={[styles.createScheuleText, {color: theme.text}]}>Schedule</Text>
-                    <TextInput style={[styles.createScheuleInput, {color: theme.light, backgroundColor: theme.text}]} placeholder='Enter Title' onChangeText={(text) => setTitle(text)} placeholderTextColor={theme.light} />
 
-                    <View style={styles.createScheuleFull}>
-                        <Text style={[styles.createScheuleFullText, {color: theme.text}]}>Fullday</Text>
-                        <Switch value={fullday} onValueChange={toggleSwitch} />
-                    </View>
+            <View style={styles.createScheule}>
+                <Text style={[styles.createScheuleFullText, {color: theme.text, paddingBottom: 7}]}>Enter Schedule</Text>
+                    <TextInput style={[styles.createScheuleInput, {color: theme.text, borderColor: theme.text,}]} placeholder='Enter Title' onChangeText={(text) => setTitle(text)} placeholderTextColor={theme.light} />
 
                     <View style={styles.createScheulePla}>
                         <View style={styles.createScheuleFull}>
@@ -199,13 +160,13 @@ const ScheduleScreen = () => {
                         {/* reminder section end */}
 
                         <View style={styles.scheduleInput}>
-                            <Text>Enter place </Text>
-                            <TextInput placeholder='Place...' style={[styles.createScheuleInput, {marginBottom: 0, backgroundColor:theme.text, color: theme.light}]} onChangeText={(text) => setPlace(text)} placeholderTextColor={theme.light} />
+                            <Text style={[styles.createScheuleFullText, {color: theme.text, paddingBottom: 7}]}>Enter place </Text>
+                            <TextInput placeholder='Place...' style={[styles.createScheuleInput, {color: theme.text, borderColor: theme.text,}]} onChangeText={(text) => setPlace(text)} placeholderTextColor={theme.light} />
                         </View>
 
                         <View style={styles.scheduleInput}>
-                            <Text>Enter note </Text>
-                            <TextInput placeholder='Note...' style={[styles.createScheuleInput, {backgroundColor:theme.text, color: theme.light}]} multiline onChangeText={(text) => setNote(text)} placeholderTextColor={theme.light}/>
+                            <Text style={[styles.createScheuleFullText, {color: theme.text, paddingBottom: 7}]}>Enter note </Text>
+                            <TextInput placeholder='Note...' style={[styles.createScheuleInput, {color: theme.text, borderColor: theme.text,}]} multiline onChangeText={(text) => setNote(text)} placeholderTextColor={theme.light}/>
                         </View>
                     </View>
                 </View>
@@ -312,13 +273,13 @@ const styles = StyleSheet.create({
         marginBottom: 20
     },
     createScheuleInput: {
+        width: "100%",
+        borderWidth: 1,
         borderRadius: 10,
-        paddingVertical: 7,
-        fontSize: 16,
+        paddingVertical: 5,
+        fontSize: 14,
         fontFamily: 'Nunito-Regular',
         paddingHorizontal: 10,
-        marginBottom: 25,
-        width: "100%"
     },
     createScheuleFull: {
         flexDirection: "row",
@@ -326,8 +287,9 @@ const styles = StyleSheet.create({
         justifyContent: "space-between"
     },
     createScheuleFullText: {
-        fontSize: 16,
-        fontFamily: 'Nunito-Regular',
+        fontSize: 15,
+        fontFamily: 'Nunito-SemiBold',
+        textTransform: "capitalize"
     },
     createScheuleSecon: {
         flexDirection: "row",
@@ -339,7 +301,8 @@ const styles = StyleSheet.create({
         fontFamily: 'Nunito-Regular',
     },
     createScheulePla: {
-        gap: 17
+        gap: 17,
+        marginTop: 14
     },
     modalContainer: {
         flex: 1,

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Svg, { Path } from 'react-native-svg';
 
-function CrossIcon(props) {
+function CrossIcon({props, color}) {
   return (
     <Svg
       width={24}
@@ -12,13 +12,13 @@ function CrossIcon(props) {
     >
       <Path
         d="M17.6569 6.34314L6.34315 17.6568"
-        stroke="white"
+        stroke={color}
         strokeWidth={3}
         strokeLinecap="round"
       />
       <Path
         d="M6.34314 6.34314L17.6568 17.6568"
-        stroke="white"
+        stroke={color}
         strokeWidth={3}
         strokeLinecap="round"
       />

@@ -12,5 +12,7 @@ export { default as Mark } from "../component/Mark";
 export { default as Dustin } from "../component/Dustin";
 export { default as Edit } from "../component/Edit";
 export { default as CheckBox } from "../component/CheckBox";
+export { default as SmallArrow } from "../component/SmallArrow";
+export { default as Arrow } from "../component/Arrow";
 
 

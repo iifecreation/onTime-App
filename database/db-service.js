@@ -10,7 +10,6 @@ export const initializeDatabase = async (db) => {
             CREATE TABLE IF NOT EXISTS Schedule(
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 title TEXT NOT NULL,
-                fullday BOOLEAN,
                 start DATE NOT NULL,
                 finish DATE NOT NULL,
                 repeat TEXT NOT NULL,
@@ -22,9 +21,7 @@ export const initializeDatabase = async (db) => {
             );
             CREATE TABLE IF NOT EXISTS Note(
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                title TEXT NOT NULL,
                 desc TEXT NOT NULL,
-                completed BOOLEAN,
                 createdAt TEXT NOT NULL
             );`,
         )
@@ -39,15 +36,14 @@ export const initializeDatabase = async (db) => {
 //***** UPDATE Schedule data
 export const saveScheduleData = async (db, schedule) => {
     try {
-        const insertQuery = `INSERT INTO Schedule (title, fullday, start, finish, repeat, reminder, place, note, completed, createdAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const insertQuery = `INSERT INTO Schedule (title, start, finish, repeat, reminder, place, note, completed, createdAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         
         const statement = await db.prepareAsync(insertQuery)
         console.log(statement);
         
         await statement.executeAsync([
             schedule.title,
-            schedule.fullday ? 1 : 0,
             schedule.start,
             schedule.finish,
             schedule.repeat,
@@ -119,31 +115,32 @@ export const updateSchedule = async (db, scheduleId, schedule ) => {
     try {
         await db.runAsync(`
             UPDATE Schedule SET 
-            title = ?, 
-            fullday = ?, 
+            title = ?,
             start = ?, 
             finish = ?,
             repeat = ?,
             reminder = ?,
             place = ?,
             note = ?,
-            createdAt = ?,
             completed = ?,
+            createdAt = ?
             WHERE id = ?`,
             [
             schedule.title,
-            schedule.fullday ? 1 : 0,
             schedule.start,
             schedule.finish,
             schedule.repeat,
             schedule.reminder,
             schedule.place,
             schedule.note,
-            schedule.createdAt,
             schedule.completed ? 1 : 0,
-            studentId
-            ]);
-        await getScheduleData();
+            schedule.createdAt,
+            scheduleId
+            ]
+        );
+        let data = await getScheduleData(db);
+        console.log(data);
+        
     } catch (error) {
         console.log('Error while updating schedule', error);
     }
@@ -158,7 +155,7 @@ export const updateNote = async (db, noteId, note ) => {
             title = ?, 
             desc = ?, 
             completed = ?, 
-            createdAt = ?,
+            createdAt = ?
             WHERE id = ?`,
             [
                 note.title,
