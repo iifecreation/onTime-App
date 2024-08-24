@@ -18,7 +18,7 @@ export const showScheduleData = (item, index) => {
           {item.data.map(schedule => {
               const load = JSON.parse(schedule)     
               return(
-                <ShowSchedule item={{...load}} />
+                <ShowSchedule key={load.id} item={{...load}} />
               )
           } )}
       </View>

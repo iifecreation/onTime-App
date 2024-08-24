@@ -27,22 +27,22 @@ const Notification = () => {
           <View style={styles.notifiedContent}>
             <View style={[styles.notifiedContentPart, {borderColor: theme.text}]}>
               <Text style={[styles.notifiedContentText1, {color: theme.text}]}>Dinner with Anna</Text>
-              <Text style={[styles.notifiedContentText2, {color: theme.main}]}>20 Sep 2021 08:00 PM</Text>
+              <Text style={[styles.notifiedContentText2, {color: theme.text + "80"}]}>20 Sep 2021 08:00 PM</Text>
             </View>
 
             <View style={[styles.notifiedContentPart, {borderColor: theme.text}]}>
               <Text style={[styles.notifiedContentText1, {color: theme.text}]}>Pay House Tax</Text>
-              <Text style={[styles.notifiedContentText2, {color: theme.main}]}>20 Sep 2021 08:00 PM</Text>
+              <Text style={[styles.notifiedContentText2, {color: theme.text + "80"}]}>20 Sep 2021 08:00 PM</Text>
             </View>
 
             <View style={[styles.notifiedContentPart, {borderColor: theme.text}]}>
               <Text style={[styles.notifiedContentText1, {color: theme.text}]}>Make A New Proposal</Text>
-              <Text style={[styles.notifiedContentText2, {color: theme.main}]}>20 Sep 2021 08:00 PM</Text>
+              <Text style={[styles.notifiedContentText2, {color: theme.text + "80"}]}>20 Sep 2021 08:00 PM</Text>
             </View>
 
             <View style={[styles.notifiedContentPart, {borderColor: theme.text}]}>
               <Text style={[styles.notifiedContentText1, {color: theme.text}]}>Meeting with A New Client</Text>
-              <Text style={[styles.notifiedContentText2, {color: theme.main}]}>20 Sep 2021 08:00 PM</Text>
+              <Text style={[styles.notifiedContentText2, {color: theme.text + "80"}]}>20 Sep 2021 08:00 PM</Text>
             </View>
           </View>
 

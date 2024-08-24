@@ -1,10 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React, { useEffect } from 'react'
-import Gradient from '../common/Gradient'
 import Logo from "../component/Logo"
 import { StatusBar } from 'expo-status-bar'
 import { useTheme } from '../context/ThemeProvider'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const OnboardingScreen = ({navigation}) => {
   const{theme} = useTheme()
@@ -17,10 +15,10 @@ const OnboardingScreen = ({navigation}) => {
   }, []);
 
   return (
-    <View style={[styles.onBoard, {backgroundColor: theme.main}]}>
+    <View style={[styles.onBoard, {backgroundColor: theme.light}]}>
       <StatusBar style={theme.status} />
         <View style={styles.onBoardLogo}>
-          <Logo color={theme.logo} />
+          <Logo color={theme.text} />
         </View>
     </View>
   )

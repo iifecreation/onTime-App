@@ -21,7 +21,7 @@ export const initializeDatabase = async (db) => {
             );
             CREATE TABLE IF NOT EXISTS Note(
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                desc TEXT NOT NULL,
+                note TEXT NOT NULL,
                 createdAt TEXT NOT NULL
             );`,
         )
@@ -55,7 +55,7 @@ export const saveScheduleData = async (db, schedule) => {
         ])
 
         let data = await getScheduleData(db);
-        console.log(data);
+        return data
         
     } catch (error) {
         console.error('Error executing SQL statement:', error);
@@ -66,21 +66,18 @@ export const saveScheduleData = async (db, schedule) => {
 //***** UPDATE Note data
 export const saveNoteData = async (db, note) => {
     try {
-        const insertQuery = `INSERT INTO Note (title, desc, completed, createdAt)
-            VALUES (?, ?, ?)`;
+        const insertQuery = `INSERT INTO Note (note, createdAt)
+            VALUES (?, ?)`;
         
         const statement = await db.prepareAsync(insertQuery)
-        console.log(statement);
         
         await statement.executeAsync([
-            note.title,
-            note.desc,
-            note.completed,
+            note.note,
             note.createdAt
         ])
 
         let data = await getNoteData(db);
-        console.log(data);
+        return data
         
     } catch (error) {
         console.error('Error executing SQL statement:', error);
@@ -139,7 +136,7 @@ export const updateSchedule = async (db, scheduleId, schedule ) => {
             ]
         );
         let data = await getScheduleData(db);
-        console.log(data);
+        return data
         
     } catch (error) {
         console.log('Error while updating schedule', error);
@@ -151,20 +148,17 @@ export const updateSchedule = async (db, scheduleId, schedule ) => {
 export const updateNote = async (db, noteId, note ) => {
     try {
         await db.runAsync(`
-            UPDATE Schedule SET 
-            title = ?, 
-            desc = ?, 
-            completed = ?, 
+            UPDATE Note SET
+            note = ?,
             createdAt = ?
             WHERE id = ?`,
             [
-                note.title,
-                note.desc,
-                note.completed ? 1 : 0,
+                note.note,
                 note.createdAt,
                 noteId
             ]);
-        await getNoteData();
+        let data = await getNoteData(db);
+        return data
     } catch (error) {
         console.log('Error while updating note', error);
     }
@@ -175,7 +169,8 @@ export const updateNote = async (db, noteId, note ) => {
 export const deleteScheduleData = async (db, id) => {
     try {
         await db.runAsync('DELETE FROM Schedule WHERE id = ?', [id]);
-        await getScheduleData(db);
+        let data = await getScheduleData(db);
+        return data
     } catch (error) {
         console.log('Error deleting data : ', error);
     }
@@ -186,7 +181,8 @@ export const deleteScheduleData = async (db, id) => {
 export const deleteNoteData = async (db, id) => {
     try {
         await db.runAsync('DELETE FROM Note WHERE id = ?', [id]);
-        await getNoteData(db);
+        let data = await getNoteData(db);
+        return data
     } catch (error) {
         console.log('Error deleting data : ', error);
     }

@@ -1,71 +1,23 @@
-import { FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Animated } from 'react-native'
+import React, { useCallback, useRef, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import moment from 'moment'
-import { LIGHT_MODE } from '../common/style'
 import { useTheme } from '../context/ThemeProvider'
-import { getNoteData, getScheduleData } from '../database/db-service'
+import { deleteNoteData } from '../database/db-service'
 import { useSQLiteContext } from 'expo-sqlite'
 import { showScheduleData } from '../libs/showScheduleData'
 import {Plus, SmallLogo, Search, Cross, Notification, Gradient, MyCalendar, Edit, Dustin, Schedule, Note} from "../libs/exportData"
+import {RichEditor } from 'react-native-pell-rich-editor'
 
 const HomeScreen = ({navigation}) => {
   const db = useSQLiteContext();
   const[schedule, setSchedule] = useState(true)
   const[note, setNote] = useState(false)
   const[plus, setPlus] = useState(false)
-  const [scheduleData, setScheduleData] = useState([]);
-  const [filteredSchedule, setFilteredSchedule] = useState([]);
-  const [noteData, setNoteData] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const {theme} = useTheme()
-
-  // Function to group schedules by creation date
-  const groupByCreationDate = useMemo((data) =>  {
-    return (data) => {
-      const groupedData = {};
-      data.forEach(schedule => {
-        const creationDate = moment( Number(schedule.createdAt)).format('DD-MM-YYYY')
-        if(groupedData[creationDate]){
-          groupedData[creationDate].push(JSON.stringify(schedule))
-        }else{
-          groupedData[creationDate] = [JSON.stringify(schedule)]
-        }
-      })
-
-      return groupedData     
-    };
-  })
-
-  useEffect(() => {
-    const fetchScheduleData = async () => {
-        try {
-          const scheduleData = await getScheduleData(db)
-
-          const groupedData = groupByCreationDate(scheduleData)
-
-          setScheduleData(groupedData)
-          setFilteredSchedule(groupedData)
-                       
-        } catch (error) {
-            console.error('Error retrieving schedule data:', error);
-        }
-    };
-
-    const fetchNotes = async () => {
-      try {
-        const noteData = await getNoteData(db)
-        setNoteData(noteData)
-      } catch (error) {
-        console.error('Error fetching notes:', error);
-      }
-    };
-
-    fetchNotes();
-    fetchScheduleData();
-  }, []);
+  const {theme, scheduleData, filteredSchedule, noteData, setFilteredSchedule, setNoteData} = useTheme()
+  const position = useRef(new Animated.Value(0)).current;
 
   const showSchedule = () => {
     setNote(false)
@@ -87,34 +39,40 @@ const HomeScreen = ({navigation}) => {
 
   const deleteNote = async (id) => {
     try {
-      const updatedNotes = noteData.filter(note => note.id !== id);
-      await AsyncStorage.setItem('noteData', JSON.stringify(updatedNotes));
-      setNoteData(updatedNotes.reverse());
+      let data = await deleteNoteData(db, id)
+      setNoteData(data)
+      console.log('Schedule deleted successfully!');
     } catch (error) {
-      console.error('Error deleting note:', error);
+      console.error('Error deleting schedule:', error);
+      
     }
-  };
+  }
 
   const renderNoteItem = ({ item }) => {
-    if (searchQuery && !item.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return null; 
-    }
-
-    const truncatedDesc = item.desc.split(' ').slice(0, 25).join(' ');
+    
     return (
-      <View style={styles.showNoteContentContainer}>
-        <View >
-          <Text style={styles.showNoteTexthead}>{item.title}</Text>
-          <Text style={styles.showNoteTextDesc}>{truncatedDesc}...</Text>
+      <View style={[styles.showNoteContentContainer, {backgroundColor: theme.text}]} key={item.id}>
+        <View style={{height: 105, marginBottom: 10}}>
+          <RichEditor
+          initialContentHTML={item.note}
+          disabled={true}
+          editorStyle={
+            {
+              backgroundColor: theme.text,
+              color: theme.light,
+            }
+          }
+          style={[styles.rich]}
+          />
         </View>
         <View style={styles.showNoteDateCon}>
-          <Text style={styles.showNoteDate}>{new Date(item.dateCreated).toLocaleDateString()}</Text>
+          <Text style={[styles.showNoteDate, {color: theme.light}]}>{moment(Number(item.createdAt)).format("D/MM/YYYY")}</Text>
           <View style={{flexDirection: "row", gap: 10, alignItems: "center", justifyContent: "center"}}>
             <TouchableOpacity onPress={() => navigation.navigate('EditNote', { note: item })}>
-              <Edit />
+              <Edit color={theme.light}/>
             </TouchableOpacity>
             <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteNote(item.id)}>
-              <Dustin color="#ffffff" />
+              <Dustin color={theme.light} />
             </TouchableOpacity>
           </View>
         </View>
@@ -153,6 +111,22 @@ const HomeScreen = ({navigation}) => {
     title: date,
     data: filteredSchedule[date]
   }));
+
+  const moveLeft = () => {
+    Animated.timing(position, {
+      toValue: 153, // Move left by 100 units
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const moveRight = () => {
+    Animated.timing(position, {
+      toValue: 3, 
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  };
 
   return (
     <View style={styles.onBoard}>
@@ -210,13 +184,33 @@ const HomeScreen = ({navigation}) => {
           </View>
 
           <View style={styles.cover}>
-            <View style={styles.homeSelect}>
-              <TouchableOpacity style={styles.homeSelectTextPart} onPress={() => showSchedule()}>
-                <Text style={[styles.homeSelectText]}>Schedule</Text>
+            <View style={[styles.homeSelect, {backgroundColor: theme.text}]}>
+              <Animated.View
+              style={[
+                // styles.box,
+                styles.animateButton,
+                {
+                  backgroundColor: theme.light,
+                  transform: [{ translateX: position }],
+                  // left: schedule ? position : null,
+                  // right: note ? position : null
+                },
+              ]}
+              >
+                {/* <View style={[styles.animateButton, {backgroundColor: theme.light, left: schedule ? 5 : null, right: note ? 5 : null }]}></View> */}
+              </Animated.View>
+              <TouchableOpacity style={styles.homeSelectTextPart} onPress={() => {
+                showSchedule()
+                moveRight()
+              }}>
+                <Text style={[styles.homeSelectText, {color: schedule ? theme.text : theme.light}]}>Schedule</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.homeSelectTextPart} onPress={() => showNote()}>
-                <Text style={[styles.homeSelectText]}>Note</Text>
+              <TouchableOpacity style={styles.homeSelectTextPart} onPress={() => {
+                showNote()
+                moveLeft()
+              }}>
+                <Text style={[styles.homeSelectText, {color: note ? theme.text : theme.light}]}>Note</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -248,17 +242,19 @@ const HomeScreen = ({navigation}) => {
           {note && (
             <View style={styles.scheduleContainer}>
 
-              <View style={styles.noteSearch}>
-                <Search />
+              <View style={[styles.noteSearch, {borderColor: theme.text}]}>
+                <Search color={theme.text} />
                 <TextInput placeholder='Search for note' 
                   value={searchQuery}
-                  onChangeText={setSearchQuery} />
+                  onChangeText={setSearchQuery}
+                  style={{color: theme.text}}
+                  placeholderTextColor={theme.text + "73"} />
               </View>
               
               <View>
                 <View style={styles.showNoteContent}>
                   {
-                    noteData.length === 0 ? (
+                    noteData.length < 0 ? (
                       <View style={styles.schedulesNoTextWrapper}>
                         <Text style={styles.schedulesNoText} >You Didn’t Have Any Note.</Text>
                         <TouchableOpacity onPress={() => navigation.navigate("Note")}>
@@ -316,19 +312,17 @@ const styles = StyleSheet.create({
     gap: 30
   },
   homeSelect: {
-    backgroundColor: "#D9614C",
     borderRadius: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    width: "80%",
     paddingHorizontal: 5,
     paddingVertical: 12,
-    marginTop: 20
+    marginTop: 20,
+    position: "relative"
   },
   homeSelectText: {
-    color: "#ffffff",
-    fontFamily: 'Nunito-SemiBold',
+    fontFamily: 'Nunito-Bold',
     fontSize: 16,
     textAlign: "center"
   },
@@ -378,7 +372,7 @@ const styles = StyleSheet.create({
     width: "50%"
   },
   noteSearch: {
-    backgroundColor: "#ffffff",
+    borderWidth: 1,
     borderRadius: 30,
     flexDirection: "row",
     alignItems: "center",
@@ -391,11 +385,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   showNoteContentContainer: {
-    backgroundColor: LIGHT_MODE.main,
-    borderRadius: 15,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    borderRadius: 10,
     marginBottom: 10,
+    paddingVertical: 10,
   },
   showNoteTexthead: {
     fontFamily: 'Nunito-Bold',
@@ -411,14 +403,14 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   showNoteDate: {
-    color: "#ffffff",
     fontFamily: 'Nunito-Bold',
     fontSize: 13
   },
   showNoteDateCon: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center"
+    alignItems: "center",
+    paddingHorizontal: 12,
   },
   plusIconThrid: {
     gap: 20
@@ -520,5 +512,24 @@ const styles = StyleSheet.create({
   },
   returnScheduleData: {
     flex: 1
+  },
+  rich:{
+    maxHeight: 105,
+  },
+  animateButton: {
+    position: "absolute",
+    shadowColor: "#000000a2",
+    shadowOffset: {
+      width: 0,
+      height: 3
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 5,
+    paddingVertical: 18,
+    borderRadius: 10,
+    width: '50%',
+    left: 5
+    // right: 10
   }
 })

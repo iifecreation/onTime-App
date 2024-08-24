@@ -26,7 +26,7 @@ const ScheduleScreen = () => {
     const [isReminderModalVisible, setReminderModalVisible] = useState(false);
     const [selectedRepeatOption, setSelectedRepeatOption] = useState('One time');
     const [selectedReminderOption, setSelectedReminderOption] = useState('Before 5 minutes');
-    const{theme} = useTheme()
+    const{theme, setScheduleData, setFilteredSchedule, groupByCreationDate} = useTheme()
 
     const showDatePicker = () => {
         setDatePickerVisibility(true);
@@ -87,9 +87,11 @@ const ScheduleScreen = () => {
             };
             
             let data = await saveScheduleData(db, newSchedule);
-            
-            console.log('Schedule data saved successfully!', data);
-            navigation.navigate("Home")
+            let sche = groupByCreationDate(data)
+            setScheduleData(sche)
+            setFilteredSchedule(sche)
+            console.log('Schedule data saved successfully!');
+            navigation.navigate("Home", { refresh: true})
         } catch (error) {
             console.error('Error saving schedule data:', error);
         }

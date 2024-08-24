@@ -2,18 +2,14 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, Switch, View } from 're
 import React, { useState } from 'react'
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import Gradient from '../common/Gradient';
-import Arrow from "../component/Arrow"
+import {Gradient, Arrow} from "../libs/exportData";
 import { useTheme } from '../context/ThemeProvider'
 
 const SettingScreen = () => {
     const navigation = useNavigation();
-    const{theme, toggleTheme} = useTheme()
-    const [isEnabled, setIsEnabled] = useState(false);
+    const{theme, toggleTheme, modeStatus, notified, toggleNotified} = useTheme()
 
     const toggleSwitch = () => {
-      console.log("hello ");
-      setIsEnabled(previousState => !previousState)
       toggleTheme()
     }
 
@@ -34,9 +30,9 @@ const SettingScreen = () => {
             <Text style={[styles.notifiedHeaderText, {color: theme.text}]}>Change mode</Text>
             <Switch
               trackColor={{false: theme.text, true: theme.text}}
-              thumbColor={isEnabled ? theme.main : '#ffffff'}
+              thumbColor={modeStatus ? theme.main : '#ffffff'}
               onValueChange={toggleSwitch}
-              value={isEnabled}
+              value={modeStatus}
             />
           </View>
 
@@ -45,7 +41,12 @@ const SettingScreen = () => {
             <Text style={[styles.notiContHeaderText, {color: theme.text}]}>Audio</Text>
             <View style={styles.notiContSwitch}>
                 <Text style={[styles.notiContHeaderText, {color: theme.text}]}>Notification bar</Text>
-                <Switch />
+                <Switch 
+                  trackColor={{false: theme.text, true: theme.text}}
+                  thumbColor={notified ? theme.main : '#ffffff'}
+                  onValueChange={toggleNotified}
+                  value={notified}
+                />
             </View>
           </View>
 

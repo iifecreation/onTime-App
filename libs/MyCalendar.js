@@ -17,15 +17,15 @@ const MyCalendar = ({ onDateSelect }) => {
       theme={{
         backgroundColor: "transparent",
         calendarBackground: "transparent",
-        selectedDayBackgroundColor: theme.main,
+        selectedDayBackgroundColor: theme.text,
         selectedDayTextColor: theme.text,
         dayTextColor: theme.text,
-        arrowColor: theme.main,
-        monthTextColor: theme.main,
+        arrowColor: theme.text,
+        monthTextColor: theme.text,
         textMonthFontWeight: "800",
         textMonthFontSize: 20,
-        todayBackgroundColor: theme.main,
-        todayTextColor: "#fff"
+        todayBackgroundColor: theme.text,
+        todayTextColor: theme.light
       }}
       onDayPress={handleDateSelect}
       />

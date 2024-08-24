@@ -1,9 +1,8 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
-import Gradient from '../common/Gradient'
 import { StatusBar } from 'expo-status-bar'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Arrow from "../component/Arrow"
+import {Arrow, Gradient} from "../libs/exportData"
 import { useTheme } from '../context/ThemeProvider'
 
 const AboutScreen = ({navigation }) => {

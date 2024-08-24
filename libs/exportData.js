@@ -14,5 +14,7 @@ export { default as Edit } from "../component/Edit";
 export { default as CheckBox } from "../component/CheckBox";
 export { default as SmallArrow } from "../component/SmallArrow";
 export { default as Arrow } from "../component/Arrow";
+export { default as Logo } from "../component/Logo";
+
 
 

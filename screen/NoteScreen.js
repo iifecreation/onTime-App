@@ -1,23 +1,23 @@
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useCallback, useRef, useState } from 'react'
 import Arrow from "../component/Arrow"
 import Mark from "../component/Mark"
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeProvider'
-import {actions, RichEditor, RichToolbar, getContentCSS } from 'react-native-pell-rich-editor'
+import {actions, RichEditor, RichToolbar } from 'react-native-pell-rich-editor'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import { saveNoteData } from '../database/db-service';
+import { useSQLiteContext } from 'expo-sqlite'
 
 const NoteScreen = () => {
-  const navigation = useNavigation();
-  const[title, setTitle] = useState("")
-  const[desc, setDesc] = useState("")
-  const{theme} = useTheme()
+  const navigation = useNavigation()
+  const[note, setNote] = useState("")
+  const{theme, setNoteData} = useTheme()
+  const db = useSQLiteContext();
 
   const richText = useRef()
   const scrollRef = useRef(null)
-  const[text, setText] = useState("")
 
   const handleCursorPosition = useCallback((scrollY) => {
     // Positioning scroll bar
@@ -30,20 +30,20 @@ const NoteScreen = () => {
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
       aspect: [4, 3],
+      base64: true,
       quality: 1,
     });
     
     if (!result.canceled && result.assets.length > 0) {
-      const imageUri = result.assets[0].uri;
-      console.log("Image URI:", imageUri);
+      // const imageUri = result.assets[0].uri;
+      const base64Image = result.assets[0].base64;
+      const base64Type = result.assets[0].mimeType
+      const imageData = `data:${base64Type};base64,${base64Image}`;
   
-      // Insert image using the URI
-      // Make sure your editor supports the image URI format
-      richText.current.insertImage(imageUri);
+      richText.current.insertImage(imageData);
     } else {
       console.log("Image picking canceled or failed.");
     }
-    // richText.current.insertImage(`${result.assets[0].uri}`);
     // insert base64
     // this.richText.current?.insertImage(`data:${image.mime};base64,${image.data}`);
   }, []);
@@ -51,23 +51,17 @@ const NoteScreen = () => {
 
   const saveNote = async () => {
     try {
-      let notes = [];
-      const existingNotes = await AsyncStorage.getItem('noteData');
-      if (existingNotes) {
-        notes = JSON.parse(existingNotes);
-      }
 
       const newNote = {
-        id: Date.now(),
-        dateCreated: new Date().toISOString(),
-        title,
-        desc,
+        note,
+        createdAt: Date.now()
       };
 
-      notes.push(newNote);
-
-      await AsyncStorage.setItem('noteData', JSON.stringify(notes));
-      navigation.goBack();
+      let data = await saveNoteData(db, newNote)
+      setNoteData(data)
+      console.log('Schedule data saved successfully!');
+      navigation.navigate("Home")
+      
     } catch (error) {
       console.error('Error saving note:', error);
     }
@@ -75,36 +69,6 @@ const NoteScreen = () => {
 
 
   return (
-    // <View style={[styles.schedule, {backgroundColor: theme.light}]}>
-    //     <View style={styles.scheduleContainer}>
-    //         <View style={styles.header}>
-    //             <TouchableOpacity onPress={() => navigation.goBack()}>
-    //                 <Arrow color={theme.text}  />
-    //             </TouchableOpacity>
-    //             <View style={styles.headerNav}>
-    //                 <TouchableOpacity onPress={() => saveNote()}>
-    //                     <Mark color={theme.text} />
-    //                 </TouchableOpacity>
-    //             </View>
-
-    //         </View>
-            
-    //         <ScrollView style={styles.createScheule}>
-    //             <Text style={[styles.createScheuleText, {color: theme.text}]}>Create Note</Text>
-        
-    //             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardAvoidingContainer}>
-    //                 <Text style={[styles.noteCreateText, {color: theme.text}]}>Title</Text>
-    //                 <TextInput placeholder='Enter title....'  style={styles.noteCreateInput} placeholderTextColor={theme.text} onChangeText={(text) => setTitle(text)}/>
-    //                 <Text style={[styles.noteCreateText, {marginTop: 20, color: theme.text}]}>Description</Text>
-                    
-    //                 <TextInput placeholder='Enter title....' style={[styles.noteCreateInput, {paddingBottom: 20}]} placeholderTextColor={theme.text} multiline onChangeText={(text) => setDesc(text)}  />
-    //             </KeyboardAvoidingView >
-        
-    //         </ScrollView>
-            
-    //     </View>
-    // </View>
-
     <SafeAreaView style={[styles.schedule, {backgroundColor: theme.light}]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -127,15 +91,16 @@ const NoteScreen = () => {
           firstFocusEnd={false}
           ref={richText}
           style={[styles.rich]}
-          editorStyle={{backgroundColor: theme.light, color: theme.text, placeholderColor: theme.text}}
+          editorStyle={{backgroundColor: theme.light, color: theme.text, placeholderColor: theme.text + "73", caretColor: theme.text, borderBottomWidth: 0}}
           useContainer={true}
           initialHeight={400}
           enterKeyHint={'done'}
           pasteAsPlainText={true}
           onCursorPosition={handleCursorPosition}
           placeholder={'please note content'}
-          onChange={(text) => console.log(text)
-          }
+          onChange={async (text) => {
+            setNote(text)
+          }}
         />
       </ScrollView>
 
@@ -195,10 +160,6 @@ const styles = StyleSheet.create({
   schedule: {
       flex: 1,
   },
-  scheduleContainer: {
-      paddingVertical: 40,
-      paddingHorizontal: 20
-  },
   header: {
     paddingHorizontal: 20,
     paddingVertical: 10,
@@ -207,40 +168,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between"
   },
   headerNav: {
-      flexDirection: "row",
-      gap: 20,
-      alignItems: "center"
-  },
-  createScheule: {
-      paddingTop: 30,
-      marginBottom: 10,
-      paddingBottom: 100
-  },
-  createScheuleText: {
-      fontFamily: 'Nunito-SemiBold',
-      fontSize: 18,
-      marginBottom: 30
-  },
-  noteCreateText: {
-    color: "#ffffff",
-    fontFamily: 'Nunito-SemiBold',
-    fontSize: 14,
-    marginBottom: 10
-  },
-  noteCreateInput: {
-    borderColor: "#fff",
-    borderWidth: 2,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    color: "#fff",
-  },
-  keyboardAvoidingContainer: {
-    flex: 1,
+    flexDirection: "row",
+    gap: 20,
+    alignItems: "center"
   },
   rich: {
     minHeight: 300,
     flex: 1,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#e3e3e3',
+    borderColor: '#fff0',
   },
 })
