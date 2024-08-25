@@ -143,6 +143,27 @@ export const updateSchedule = async (db, scheduleId, schedule ) => {
     }
 };
 
+export const updateCheckSchedule = async (db, scheduleId, completed ) => {
+    try {
+        console.log("this is ", completed);
+        
+        await db.runAsync(`
+            UPDATE Schedule SET
+            completed = ?
+            WHERE id = ?`,
+            [
+            completed ? 1 : 0,
+            scheduleId
+            ]
+        );
+        let data = await getScheduleData(db);
+        return data
+        
+    } catch (error) {
+        console.log('Error while updating schedule', error);
+    }
+};
+
 // *
 //***** UPDATE Note data
 export const updateNote = async (db, noteId, note ) => {

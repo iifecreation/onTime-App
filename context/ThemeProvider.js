@@ -4,8 +4,19 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getNoteData, getScheduleData } from "../database/db-service";
 import moment from "moment";
 import { useSQLiteContext } from "expo-sqlite";
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 
 const themeContext = createContext(LIGHT_MODE)
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+});
 
 const ThemeProvider = ({children}) => {
     const[theme, setTheme] = useState(LIGHT_MODE)

@@ -13,7 +13,7 @@ const EditScheduleScreen = () => {
     const route = useRoute();
     const { schedule } = route.params;
     const{theme, setScheduleData, setFilteredSchedule, groupByCreationDate} = useTheme()
-    let data = schedule
+    let data = schedule;
     const db = useSQLiteContext();
     const navigation = useNavigation();
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -87,8 +87,8 @@ const EditScheduleScreen = () => {
                 completed: isChecked,
                 createdAt: Date.now()
             };
-            let data = await updateSchedule(db, data.id, newSchedule )
-            let sche = groupByCreationDate(data)
+            let item = await updateSchedule(db, data.id, newSchedule )
+            let sche = groupByCreationDate(item)
             setScheduleData(sche)
             setFilteredSchedule(sche)
               
@@ -102,8 +102,8 @@ const EditScheduleScreen = () => {
     // Function to delete the schedule
     const deleteSchedule = async () => {
         try {
-            let data = await deleteScheduleData(db, data.id)
-            let sche = groupByCreationDate(data)
+            let item = await deleteScheduleData(db, data.id)
+            let sche = groupByCreationDate(item)
             setScheduleData(sche)
             setFilteredSchedule(sche)
             console.log('Schedule deleted successfully!');

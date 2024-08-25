@@ -1,32 +1,100 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import moment from "moment";
 import {Dustin, Edit, CheckBox} from "./exportData"
 import { useNavigation } from '@react-navigation/native';
-import { deleteScheduleData } from '../database/db-service';
+import { deleteScheduleData, updateCheckSchedule } from '../database/db-service';
 import { useSQLiteContext } from 'expo-sqlite'
 import { useTheme } from '../context/ThemeProvider';
+import { registerForPushNotificationsAsync } from './notifications';
+import * as Notifications from 'expo-notifications';
+import localNotifcataion from './notiee';
 
 const ShowSchedule = (data) => {
-    const navigation = useNavigation()
-    let{place, note, title, finish, start, completed, id} = data.item
-    
-    const[isChecked, setisChecked] = useState(completed == 0 ? false : true)
-    const db = useSQLiteContext();
-    const{theme, setScheduleData, setFilteredSchedule, groupByCreationDate} = useTheme()
+  const navigation = useNavigation()
+  let{place, note, title, finish, start, completed, id, reminder, repeat} = data.item
+  const[isChecked, setisChecked] = useState(completed != 0)
+  const db = useSQLiteContext();
+  const{theme, setScheduleData, setFilteredSchedule, groupByCreationDate} = useTheme()
+  const [expoPushToken, setExpoPushToken] = useState("");
+  const [notification, setNotification] = useState(false);
+  const notificationListener = useRef();
+  const responseListener = useRef();
+  localNotifcataion()
+  
+  const deleteSchedule = async () => {
+    try {
+      let data = await deleteScheduleData(db, id)
+      let sche = groupByCreationDate(data)
+      setScheduleData(sche)
+      setFilteredSchedule(sche)
+      console.log('Schedule deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting schedule:', error);
+    }
+  };
 
-    const deleteSchedule = async () => {
-      try {
-        let data = await deleteScheduleData(db, id)
-        let sche = groupByCreationDate(data)
-        setScheduleData(sche)
-        setFilteredSchedule(sche)
-        console.log('Schedule deleted successfully!');
-      } catch (error) {
-        console.error('Error deleting schedule:', error);
-      }
-    };
+  const completeSchedule = async (newCheckedState) => {
+    try {
+      let data = await updateCheckSchedule(db, id, newCheckedState)
+      let sche = groupByCreationDate(data)
+      setScheduleData(sche)
+      setFilteredSchedule(sche)
+    } catch (error) {
+      console.error('Error updating schedule:', error);
+    }
+  }
 
+  const handleCheckBoxPress = () => {
+    const newCheckedState = !isChecked;
+    setisChecked(newCheckedState);
+    completeSchedule(newCheckedState);
+  };
+
+  const getReminder = () => {
+    if(reminder == "Before 5 minutes"){
+      return 5 * 60
+    }else if(reminder == "Before 10 minutes"){
+      return 10 * 60
+    }else if(reminder == "Before 15 minutes"){
+      return 15 * 60
+    }else if(reminder == "Before 30 minutes"){
+      return 30 * 60
+    }else if(reminder == "Before a day"){
+      return 86400
+    }
+  }
+
+  const getRepeat = () => {
+    if(repeat == "One time"){
+      return 1
+    }else if(repeat == "Two times"){
+      return 2
+    }else if(repeat == "Five times"){
+      return 5
+    }
+  }
+
+  // useEffect(() => {
+  //   registerForPushNotificationsAsync()
+  //     .then(token => setExpoPushToken(token ?? ''))
+  //     .catch((error) => setExpoPushToken(`${error}`));
+  // }, [])
+
+  // const scheduleNotification = async (title, body, start) => {
+  //   // const trigger = new Date(start); // Set this to the start time of your schedule
+  
+  //   await Notifications.scheduleNotificationAsync({
+  //     content: {
+  //       title: title,
+  //       body: body,
+  //       sound: true,
+  //     },
+  //     trigger: { seconds: 2 },
+  //   });
+  // };
+
+  
   return (
     <View key={id} style={[styles.returnSchedule, {backgroundColor: completed ? theme.text + "4D" : theme.text }]}>
         <View style={[styles.returnScheduleHeader, {borderBottomColor: theme.light}]}>
@@ -56,7 +124,7 @@ const ShowSchedule = (data) => {
 
         <View style={styles.returnScheduleHeaderIcon}>
             <CheckBox 
-                onPress={() => console.log("hello")}
+                onPress={handleCheckBoxPress}
                 isChecked={isChecked}
                 text={theme.text == "#403B36" ? "#F8EEE2" : "#403B36"}
             />
