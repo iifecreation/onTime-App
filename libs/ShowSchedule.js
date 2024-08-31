@@ -1,13 +1,11 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import moment from "moment";
 import {Dustin, Edit, CheckBox} from "./exportData"
 import { useNavigation } from '@react-navigation/native';
 import { deleteScheduleData, updateCheckSchedule } from '../database/db-service';
 import { useSQLiteContext } from 'expo-sqlite'
 import { useTheme } from '../context/ThemeProvider';
-import { registerForPushNotificationsAsync } from './notifications';
-import * as Notifications from 'expo-notifications';
 import localNotifcataion from './notiee';
 
 const ShowSchedule = (data) => {
@@ -15,90 +13,78 @@ const ShowSchedule = (data) => {
   let{place, note, title, finish, start, completed, id, reminder, repeat} = data.item
   const[isChecked, setisChecked] = useState(completed != 0)
   const db = useSQLiteContext();
-  const{theme, setScheduleData, setFilteredSchedule, groupByCreationDate} = useTheme()
-  const [expoPushToken, setExpoPushToken] = useState("");
-  const [notification, setNotification] = useState(false);
-  const notificationListener = useRef();
-  const responseListener = useRef();
-  localNotifcataion()
+  const{theme, setScheduleData, setFilteredSchedule, groupByCreationDate, setNotification, setShowNotified} = useTheme()
   
-  const deleteSchedule = async () => {
+  const deleteSchedule = useCallback(async () => {
     try {
-      let data = await deleteScheduleData(db, id)
-      let sche = groupByCreationDate(data)
-      setScheduleData(sche)
-      setFilteredSchedule(sche)
-      console.log('Schedule deleted successfully!');
+      const data = await deleteScheduleData(db, id);
+      const sche = groupByCreationDate(data);
+      setScheduleData(sche);
+      setFilteredSchedule(sche);
     } catch (error) {
       console.error('Error deleting schedule:', error);
     }
-  };
+  }, [db, id]);
 
-  const completeSchedule = async (newCheckedState) => {
+  const completeSchedule = useCallback(async (newCheckedState) => {
     try {
-      let data = await updateCheckSchedule(db, id, newCheckedState)
-      let sche = groupByCreationDate(data)
-      setScheduleData(sche)
-      setFilteredSchedule(sche)
+      const data = await updateCheckSchedule(db, id, newCheckedState);
+      const sche = groupByCreationDate(data);
+      setScheduleData(sche);
+      setFilteredSchedule(sche);
     } catch (error) {
       console.error('Error updating schedule:', error);
     }
-  }
+  }, [db, id]);
 
   const handleCheckBoxPress = () => {
     const newCheckedState = !isChecked;
     setisChecked(newCheckedState);
     completeSchedule(newCheckedState);
   };
-
+  
   const getReminder = () => {
-    if(reminder == "Before 5 minutes"){
-      return 5 * 60
-    }else if(reminder == "Before 10 minutes"){
-      return 10 * 60
-    }else if(reminder == "Before 15 minutes"){
-      return 15 * 60
-    }else if(reminder == "Before 30 minutes"){
-      return 30 * 60
-    }else if(reminder == "Before a day"){
-      return 86400
+    switch (reminder) {
+      case "Before 5 minutes":
+        return 5 * 60;
+      case "Before 10 minutes":
+        return 10 * 60;
+      case "Before 15 minutes":
+        return 15 * 60;
+      case "Before 30 minutes":
+        return 30 * 60;
+      case "Before a day":
+        return 86400;
+      default:
+        return 0;
     }
-  }
+  };
 
   const getRepeat = () => {
-    if(repeat == "One time"){
-      return 1
-    }else if(repeat == "Two times"){
-      return 2
-    }else if(repeat == "Five times"){
-      return 5
+    switch (repeat) {
+      case "One time":
+        return 1;
+      case "Two times":
+        return 2;
+      case "Five times":
+        return 5;
+      default:
+        return 0;
     }
-  }
+  };
+  const reminderDate = new Date(new Date(finish).getTime() - getReminder() * 1000);
+  const repeatTime = getRepeat()
 
-  // useEffect(() => {
-  //   registerForPushNotificationsAsync()
-  //     .then(token => setExpoPushToken(token ?? ''))
-  //     .catch((error) => setExpoPushToken(`${error}`));
-  // }, [])
-
-  // const scheduleNotification = async (title, body, start) => {
-  //   // const trigger = new Date(start); // Set this to the start time of your schedule
-  
-  //   await Notifications.scheduleNotificationAsync({
-  //     content: {
-  //       title: title,
-  //       body: body,
-  //       sound: true,
-  //     },
-  //     trigger: { seconds: 2 },
-  //   });
-  // };
+  useEffect(() => {
+    localNotifcataion(db, title, note, repeatTime, reminderDate, setNotification, setShowNotified);
+}, [db, title ]);
 
   
+
   return (
     <View key={id} style={[styles.returnSchedule, {backgroundColor: completed ? theme.text + "4D" : theme.text }]}>
         <View style={[styles.returnScheduleHeader, {borderBottomColor: theme.light}]}>
-            <Text style={[styles.returnScheduleHeaderText, {color: theme.light}]}>{title.length > 28 ? `${title.substring(0, 32)}...` : note}</Text>
+            <Text style={[styles.returnScheduleHeaderText, {color: theme.light}]}>{title.length > 28 ? `${title.substring(0, 30)}...` : title}</Text>
         </View>
 
         <View >
@@ -109,17 +95,17 @@ const ShowSchedule = (data) => {
 
         <View style={styles.returnScheduleContent}>
             <Text style={[styles.returnScheduleContentText, {color: theme.light}]}>Time:</Text>
-            <Text style={[styles.returnScheduleContentText1, {color: theme.light}]}>{moment(new Date(start)).format("hh.mm a")} - {moment(new Date(finish)).format("hh.mm a")}</Text>
+            <Text style={[styles.returnScheduleContentText1, {color: theme.light}]}>{moment(new Date(start)).format("hh:mm a")} - {moment(new Date(finish)).format("hh:mm a")}</Text>
         </View>
 
         <View style={styles.returnScheduleContent}>
             <Text style={[styles.returnScheduleContentText, {color: theme.light}]}>Place:</Text>
-            <Text style={[styles.returnScheduleContentText1, {color: theme.light}]}>{place.length > 28 ? `${note.substring(0, 28)}...` : note}</Text>
+            <Text style={[styles.returnScheduleContentText1, {color: theme.light}]}>{place.length > 28 ? `${place.substring(0, 28)}...` : place}</Text>
         </View>
 
         <View style={styles.returnScheduleContent}>
             <Text style={[styles.returnScheduleContentText, {color: theme.light}]}>Notes:</Text>
-            <Text style={[styles.returnScheduleContentText1, {color: theme.light}]}>{note.length > 27 ? `${note.substring(0, 28)} ...` : note}</Text>
+            <Text style={[styles.returnScheduleContentText1, {color: theme.light}]}>{note.length > 27 ? `${note.substring(0, 28)}...` : note}</Text>
         </View>
 
         <View style={styles.returnScheduleHeaderIcon}>

@@ -10,6 +10,7 @@ const MyCalendar = ({ onDateSelect }) => {
     // Call the callback function with the selected date
     onDateSelect(date.dateString);
   };
+  
   return (
     <View style={{height: 250}}>
       <Calendar 

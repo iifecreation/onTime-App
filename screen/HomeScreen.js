@@ -1,4 +1,4 @@
-import { FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Animated } from 'react-native'
+import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View, Animated } from 'react-native'
 import React, { useCallback, useRef, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
 import moment from 'moment'
@@ -6,7 +6,7 @@ import { useTheme } from '../context/ThemeProvider'
 import { deleteNoteData } from '../database/db-service'
 import { useSQLiteContext } from 'expo-sqlite'
 import { showScheduleData } from '../libs/showScheduleData'
-import {Plus, SmallLogo, Search, Cross, Notification, Gradient, MyCalendar, Edit, Dustin, Schedule, Note} from "../libs/exportData"
+import {Plus, SmallLogo, Cross, Notification, Gradient, MyCalendar, Edit, Dustin, Schedule, Note, Notified} from "../libs/exportData"
 import {RichEditor } from 'react-native-pell-rich-editor'
 
 const HomeScreen = ({navigation}) => {
@@ -15,10 +15,9 @@ const HomeScreen = ({navigation}) => {
   const[note, setNote] = useState(false)
   const[plus, setPlus] = useState(false)
   const [selectedDate, setSelectedDate] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const {theme, scheduleData, filteredSchedule, noteData, setFilteredSchedule, setNoteData} = useTheme()
+  const {theme, scheduleData, filteredSchedule, noteData, setFilteredSchedule, setNoteData, shownotified} = useTheme()
   const position = useRef(new Animated.Value(0)).current;
-
+  
   const showSchedule = () => {
     setNote(false)
     setSchedule(true)
@@ -48,37 +47,36 @@ const HomeScreen = ({navigation}) => {
     }
   }
 
-  const renderNoteItem = ({ item }) => {
-    
+  const renderNoteItem = useCallback(({ item }) => {
     return (
-      <View style={[styles.showNoteContentContainer, {backgroundColor: theme.text}]} key={item.id}>
-        <View style={{height: 105, marginBottom: 10}}>
+      <View style={[styles.showNoteContentContainer, { backgroundColor: theme.text }]} key={item.id}>
+        <View style={{ height: 105, marginBottom: 10 }}>
           <RichEditor
-          initialContentHTML={item.note}
-          disabled={true}
-          editorStyle={
-            {
+            initialContentHTML={item.note}
+            disabled={true}
+            editorStyle={{
               backgroundColor: theme.text,
               color: theme.light,
-            }
-          }
-          style={[styles.rich]}
+            }}
+            style={[styles.rich]}
           />
         </View>
         <View style={styles.showNoteDateCon}>
-          <Text style={[styles.showNoteDate, {color: theme.light}]}>{moment(Number(item.createdAt)).format("D/MM/YYYY")}</Text>
-          <View style={{flexDirection: "row", gap: 10, alignItems: "center", justifyContent: "center"}}>
+          <Text style={[styles.showNoteDate, { color: theme.light }]}>
+            {moment(Number(item.createdAt)).format('D/MM/YYYY')}
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'center' }}>
             <TouchableOpacity onPress={() => navigation.navigate('EditNote', { note: item })}>
-              <Edit color={theme.light}/>
+              <Edit color={theme.light} />
             </TouchableOpacity>
-            <TouchableOpacity style={{width: 14, height: 14}} onPress={() => deleteNote(item.id)}>
+            <TouchableOpacity style={{ width: 14, height: 14 }} onPress={() => deleteNote(item.id)}>
               <Dustin color={theme.light} />
             </TouchableOpacity>
           </View>
         </View>
       </View>
-    )
-  }
+    );
+  }, [theme, navigation, deleteNote]);
 
   // Function to filter schedule data based on selected date
   const filterScheduleData = useCallback((date) => {
@@ -91,7 +89,6 @@ const HomeScreen = ({navigation}) => {
           setFilteredSchedule(groupedData);
           break;
         }else{
-          console.log("hello");
           
         }
       }
@@ -102,10 +99,10 @@ const HomeScreen = ({navigation}) => {
   }, []);
 
   // Callback function to handle date selection from calendar
-  const handleDateSelect = useCallback(async (date) => {
+  const handleDateSelect = useCallback((date) => {
     setSelectedDate(date);
-    filterScheduleData(date)
-  }, []);
+    filterScheduleData(date);
+  }, [filterScheduleData]);
 
   const sections = Object.keys(filteredSchedule).map(date => ({
     title: date,
@@ -115,7 +112,7 @@ const HomeScreen = ({navigation}) => {
   const moveLeft = () => {
     Animated.timing(position, {
       toValue: 153, // Move left by 100 units
-      duration: 1000,
+      duration: 500,
       useNativeDriver: true,
     }).start();
   };
@@ -171,11 +168,16 @@ const HomeScreen = ({navigation}) => {
             <SmallLogo color={theme.text} />
 
             <View style={styles.notified}>
-                <TouchableOpacity onPress={() => navigation.navigate("Notified")}>
-                  <Notification color={theme.text} />
+                <TouchableOpacity onPress={() => navigation.navigate("Notified")} activeOpacity={0.8}>
+                  {shownotified ? (
+                    <Notification color="red" />
+                  ) : (
+                    <Notified color={theme.text} />
+                  )}
+                  
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.circleContainer} onPress={() => navigation.navigate("Setting")}>
+                <TouchableOpacity style={styles.circleContainer} onPress={() => navigation.navigate("Setting")} activeOpacity={0.8}>
                   <View style={[styles.circle, {backgroundColor: theme.text}]}></View>
                   <View style={[styles.circle, {backgroundColor: theme.text}]}></View>
                   <View style={[styles.circle, {backgroundColor: theme.text}]}></View>
@@ -187,26 +189,22 @@ const HomeScreen = ({navigation}) => {
             <View style={[styles.homeSelect, {backgroundColor: theme.text}]}>
               <Animated.View
               style={[
-                // styles.box,
                 styles.animateButton,
                 {
                   backgroundColor: theme.light,
                   transform: [{ translateX: position }],
-                  // left: schedule ? position : null,
-                  // right: note ? position : null
                 },
               ]}
               >
-                {/* <View style={[styles.animateButton, {backgroundColor: theme.light, left: schedule ? 5 : null, right: note ? 5 : null }]}></View> */}
               </Animated.View>
-              <TouchableOpacity style={styles.homeSelectTextPart} onPress={() => {
+              <TouchableOpacity style={styles.homeSelectTextPart} activeOpacity={0.8} onPress={() => {
                 showSchedule()
                 moveRight()
               }}>
                 <Text style={[styles.homeSelectText, {color: schedule ? theme.text : theme.light}]}>Schedule</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.homeSelectTextPart} onPress={() => {
+              <TouchableOpacity style={styles.homeSelectTextPart} activeOpacity={0.8} onPress={() => {
                 showNote()
                 moveLeft()
               }}>
@@ -224,7 +222,7 @@ const HomeScreen = ({navigation}) => {
               <View style={styles.schedulesCont}>
                 
                 {Object.keys(filteredSchedule).length > 0  ? (
-                  sections.map((item, index) => {
+                  sections.reverse().map((item, index) => {
                     return (
                       showScheduleData(item, index, navigation)
                     )
@@ -241,29 +239,20 @@ const HomeScreen = ({navigation}) => {
 
           {note && (
             <View style={styles.scheduleContainer}>
-
-              <View style={[styles.noteSearch, {borderColor: theme.text}]}>
-                <Search color={theme.text} />
-                <TextInput placeholder='Search for note' 
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  style={{color: theme.text}}
-                  placeholderTextColor={theme.text + "73"} />
-              </View>
               
               <View>
                 <View style={styles.showNoteContent}>
                   {
-                    noteData.length < 0 ? (
+                    noteData.length <= 0 ? (
                       <View style={styles.schedulesNoTextWrapper}>
-                        <Text style={styles.schedulesNoText} >You Didn’t Have Any Note.</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate("Note")}>
-                          <Text style={styles.schedulesNoButton}>Create Note</Text>
+                        <Text style={[styles.schedulesNoText, {color: theme.text}]} >You Didn’t Have Any Note.</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate("Note")} activeOpacity={0.8}>
+                          <Text style={[styles.schedulesNoButton, {color: theme.light, backgroundColor: theme.text}]}>Create Note</Text>
                         </TouchableOpacity>
                       </View>
                     ): (
                       <FlatList
-                        data={noteData}
+                        data={noteData.reverse()}
                         renderItem={renderNoteItem}
                         keyExtractor={item => item.id.toString()}
                       />
@@ -348,8 +337,6 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   schedulesNoButton: {
-    color: "#ffffff",
-    backgroundColor: "#A792F933",
     borderRadius: 20,
     paddingHorizontal: 20,
     paddingVertical: 10,
@@ -455,64 +442,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderStyle: "solid"
   },
-  scheduleDataTextInside: {
-    fontFamily: 'Nunito-Bold',
-    color: "#515151",
-    fontSize: 16,
-  },
-  scheduleDataDate:{
-    flexDirection: "column",
-    alignItems: "center"
-  },
-  scheduleDataLine: {
-    width: 10,
-    backgroundColor: "#A792F933",
-    marginTop: -2,
-    flex: 1
-  },
-  returnSchedule: {
-    borderRadius: 15,
-    backgroundColor: "#A792F933",
-    marginBottom: 20,
-    padding: 15
-  },
-  returnScheduleHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-    borderBottomColor: "#ffffffB3",
-    borderBottomWidth: 1,
-    paddingBottom: 7,
-    marginBottom: 10
-  },
-  returnScheduleHeaderText: {
-    color: "#fff",
-    fontFamily: 'Nunito-SemiBold',
-    fontSize: 15
-  },
-  returnScheduleHeaderIcon: {
-    flexDirection: "row",
-    alignItems: 'center',
-    gap: 5
-  },
-  returnScheduleContent: {
-    flexDirection: "row",
-    gap: 20,
-    alignItems: "center"
-  },
-  returnScheduleContentText: {
-    color: "#fff",
-    fontFamily: 'Nunito-Bold',
-    fontSize: 13
-  },
-  returnScheduleContentText1: {
-    color: "#fff",
-    fontFamily: 'Nunito-Regular',
-    fontSize: 13
-  },
-  returnScheduleData: {
-    flex: 1
-  },
   rich:{
     maxHeight: 105,
   },
@@ -530,6 +459,5 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: '50%',
     left: 5
-    // right: 10
   }
 })

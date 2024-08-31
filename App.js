@@ -1,7 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import HomeScreen from './screen/HomeScreen';
-import OnboardingScreen from './screen/OnboardingScreen';
 import LoginScreen from './screen/LoginScreen';
 import { useFonts } from 'expo-font';
 import Notification from './screen/NotificationScreen';
@@ -11,14 +10,16 @@ import ScheduleScreen from './screen/ScheduleScreen';
 import EditNoteScreen from './screen/EditNoteScreen';
 import AboutScreen from './screen/AboutScreen';
 import EditScheduleScreen from './screen/EditScheduleScreen';
-import { ActivityIndicator, View } from 'react-native';
 import ThemeProvider from './context/ThemeProvider';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { initializeDatabase } from './database/db-service';
+import SplashScreen from './screen/SplashScreen';
+import { useEffect, useState } from 'react';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  const [isSplashVisible, setSplashVisible] = useState(true);
   
   const [fontsLoaded, fontError] = useFonts({
     'OpenSans-Regular': require('./assets/fonts/OpenSans-Regular.ttf'),
@@ -28,11 +29,17 @@ export default function App() {
     'Nunito-Regular': require('./assets/fonts/Nunito-Regular.ttf'),
   });
 
-  if(!fontsLoaded){
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setSplashVisible(false);
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, []);
+
+  if(isSplashVisible || !fontsLoaded){
     return(
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
+      <SplashScreen />
     )
   }
 
@@ -41,7 +48,6 @@ export default function App() {
       <ThemeProvider>
         <NavigationContainer>
           <Stack.Navigator screenOptions={{headerShown: false}}>
-            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Notified" component={Notification} />
