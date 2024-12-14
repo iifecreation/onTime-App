@@ -13,7 +13,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.iife.onTime"
+      "bundleIdentifier": "com.iifecreation.onTime"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +23,7 @@
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.iife.onTime"
+      "package": "com.iifecreation.onTime"
     },
     "web": {
       "favicon": "./assets/images/ontime.png"

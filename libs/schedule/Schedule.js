@@ -89,7 +89,7 @@ const Schedule = ({children, currentFinish, currentStart, saveEditedSchedule, se
             <ScrollView style={styles.createScheule}>
                 <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{marginBottom: 50}}>
                     <Text style={[styles.createScheuleFullText, {color: theme.text, paddingBottom: 7}]}>Enter Schedule</Text>
-                    <TextInput style={[styles.createScheuleInput, {borderColor: theme.text, color: theme.text}]} placeholder='Enter Title' value={title} onChangeText={(text) => setTitle(text)} />
+                    <TextInput style={[styles.createScheuleInput, {borderColor: theme.text, color: theme.text}]} placeholder='Enter Title' value={title} onChangeText={(text) => setTitle(text)} placeholderTextColor={theme.text}/>
 
                     <View style={styles.createScheulePla}>
                             <View style={styles.createScheuleFull}>
@@ -134,12 +134,12 @@ const Schedule = ({children, currentFinish, currentStart, saveEditedSchedule, se
 
                             <View style={styles.scheduleInput}>
                                 <Text style={[styles.createScheuleFullText, {color: theme.text, paddingBottom: 7}]}>Enter Place of task </Text>
-                                <TextInput placeholder='Place...' style={[styles.createScheuleInput, {borderColor: theme.text, color: theme.text}]} value={place} onChangeText={(text) => setPlace(text)} />
+                                <TextInput placeholder='Place...' style={[styles.createScheuleInput, {borderColor: theme.text, color: theme.text}]} value={place} onChangeText={(text) => setPlace(text)} placeholderTextColor={theme.text} />
                             </View>
 
                             <View style={styles.scheduleInput}>
                                 <Text style={[styles.createScheuleFullText, {color: theme.text, paddingBottom: 7}]}>Enter description </Text>
-                                <TextInput placeholder='Note...' style={[styles.createScheuleInput, {borderColor: theme.text, color: theme.text}]} multiline value={note} onChangeText={(text) => setNote(text)}/>
+                                <TextInput placeholder='Note...' style={[styles.createScheuleInput, {borderColor: theme.text, color: theme.text}]} multiline value={note} onChangeText={(text) => setNote(text)} placeholderTextColor={theme.text} />
                             </View>
                     </View>
                 </KeyboardAvoidingView>
